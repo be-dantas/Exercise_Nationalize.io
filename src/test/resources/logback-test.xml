@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Silencia o log do Spring durante os testes: a saida util e o resultado da
+  suite, nao o boot do contexto. Avisos e erros continuam aparecendo.
+  Vale so para testes; a aplicacao em execucao mantem o log normal.
+-->
+<configuration>
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%-5level %logger{24} - %msg%n</pattern>
+    </encoder>
+  </appender>
+  <root level="WARN">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+</configuration>
