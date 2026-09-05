@@ -99,7 +99,7 @@ class ApiEndToEndTest {
     @Test
     @DisplayName("cadastrar sem token devolve 401")
     void cadastrarSemToken() {
-        var r = cadastrar("70000000001", "a@ex.com", null);
+        var r = cadastrar("08386379499", "a@ex.com", null);
         assertEquals(401, r.getStatusCode().value());
         assertTrue(r.getBody().contains("UNAUTHORIZED"));
     }
@@ -107,21 +107,21 @@ class ApiEndToEndTest {
     @Test
     @DisplayName("cadastrar com token devolve 201 e o header Location")
     void cadastrarComToken() {
-        var r = cadastrar("70000000002", "b@ex.com", autenticar());
+        var r = cadastrar("02654235114", "b@ex.com", autenticar());
         assertEquals(201, r.getStatusCode().value());
-        assertEquals("/list/70000000002", r.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals("/list/02654235114", r.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 
     @Test
     @DisplayName("excluir sem token devolve 401; com token devolve 204")
     void excluirExigeToken() {
         String token = autenticar();
-        cadastrar("70000000003", "c@ex.com", token);
+        cadastrar("16155940789", "c@ex.com", token);
 
-        var semToken = http.delete().uri("/list/70000000003").retrieve().toEntity(String.class);
+        var semToken = http.delete().uri("/list/16155940789").retrieve().toEntity(String.class);
         assertEquals(401, semToken.getStatusCode().value());
 
-        var comToken = http.delete().uri("/list/70000000003")
+        var comToken = http.delete().uri("/list/16155940789")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve().toEntity(String.class);
         assertEquals(204, comToken.getStatusCode().value());
@@ -130,7 +130,7 @@ class ApiEndToEndTest {
     @Test
     @DisplayName("token invalido devolve 401")
     void tokenInvalido() {
-        var r = cadastrar("70000000004", "d@ex.com", "token-que-nao-existe");
+        var r = cadastrar("81618495950", "d@ex.com", "token-que-nao-existe");
         assertEquals(401, r.getStatusCode().value());
     }
 
@@ -140,20 +140,20 @@ class ApiEndToEndTest {
     @DisplayName("leitura nao exige token")
     void leituraAberta() {
         String token = autenticar();
-        cadastrar("70000000005", "e@ex.com", token);
+        cadastrar("31034131656", "e@ex.com", token);
 
         var lista = http.get().uri("/list").retrieve().toEntity(String.class);
         assertEquals(200, lista.getStatusCode().value());
-        assertTrue(lista.getBody().contains("70000000005"));
+        assertTrue(lista.getBody().contains("31034131656"));
 
-        var um = http.get().uri("/list/70000000005").retrieve().toEntity(String.class);
+        var um = http.get().uri("/list/31034131656").retrieve().toEntity(String.class);
         assertEquals(200, um.getStatusCode().value());
     }
 
     @Test
     @DisplayName("documento inexistente devolve 404 e formato invalido devolve 400")
     void erros404e400() {
-        var naoExiste = http.get().uri("/list/79999999999").retrieve().toEntity(String.class);
+        var naoExiste = http.get().uri("/list/35030564160").retrieve().toEntity(String.class);
         assertEquals(404, naoExiste.getStatusCode().value());
         assertTrue(naoExiste.getBody().contains("NOT_FOUND"));
 
@@ -167,7 +167,7 @@ class ApiEndToEndTest {
     @Test
     @DisplayName("e-mail invalido devolve 400 mesmo autenticado")
     void emailInvalido() {
-        var r = cadastrar("70000000006", "nao-e-email", autenticar());
+        var r = cadastrar("47525534144", "nao-e-email", autenticar());
         assertEquals(400, r.getStatusCode().value());
         assertTrue(r.getBody().contains("INVALID_DATA"));
     }
@@ -176,8 +176,8 @@ class ApiEndToEndTest {
     @DisplayName("documento duplicado devolve 409")
     void documentoDuplicado() {
         String token = autenticar();
-        cadastrar("70000000007", "f@ex.com", token);
-        var segunda = cadastrar("70000000007", "g@ex.com", token);
+        cadastrar("92832764851", "f@ex.com", token);
+        var segunda = cadastrar("92832764851", "g@ex.com", token);
         assertEquals(409, segunda.getStatusCode().value());
         assertTrue(segunda.getBody().contains("ALREADY_EXISTS"));
     }

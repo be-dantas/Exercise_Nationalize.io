@@ -91,10 +91,10 @@ TOKEN=$(curl -s -X POST localhost:8080/auth/login \
 
 curl -X POST localhost:8080/registrarName \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"document":"123.456.789-00","name":"Beatriz","lastName":"Dantas","email":"be@exemplo.com"}'
-# 201  {"document":"12345678900", ...}      a pontuação é normalizada
+  -d '{"document":"529.982.247-25","name":"Beatriz","lastName":"Dantas","email":"be@exemplo.com"}'
+# 201  {"document":"52998224725", ...}      a pontuação é normalizada
 
-curl localhost:8080/findNacionalityByPerson/12345678900
+curl localhost:8080/findNacionalityByPerson/52998224725
 # 200  {"name":"Beatriz Dantas","nationality":"Brazil","probability":0.665717}
 ```
 
@@ -113,20 +113,34 @@ negócio. Um id autoincremento exporia um detalhe de persistência na API públi
 *Contrapartida:* se o documento for um identificador nacional, ele vira dado
 pessoal dentro da URL — e URL vai parar em log de acesso, proxy e histórico do
 navegador, em texto puro. Neste escopo a legibilidade de
-`GET /list/12345678900` compensa, mas num sistema com dados pessoais reais eu
+`GET /list/52998224725` compensa, mas num sistema com dados pessoais reais eu
 usaria um id opaco no caminho.
 
-### A validação do documento é genérica, não específica de CPF
+### O documento é um CPF, validado de verdade
 
-De 6 a 20 caracteres alfanuméricos, depois de remover `.` `-` `/` e espaço. O
-enunciado diz *"documento"*, não *"CPF"*, então validar dígito verificador
-brasileiro rejeitaria um DNI argentino ou um RUT chileno legítimos e pareceria
-bug. Um validador específico por país plugaria no mesmo Value Object sem mudar
-mais nada.
+O enunciado pede "documento" sem dizer qual. Escolhi **CPF** por ser a
+identidade natural de uma pessoa no Brasil: nacional, único e — ao contrário do
+RG — com formato padronizado e algoritmo de verificação.
+
+O RG foi descartado por três motivos técnicos: é emitido por estado (cada SSP
+numera do seu jeito), a mesma pessoa pode ter vários, e não existe algoritmo
+para validá-lo. Um identificador que não é único não serve como identidade.
+
+A validação é a oficial: dois dígitos verificadores por módulo 11. Inclui a
+armadilha que muita implementação esquece — `00000000000`, `11111111111` e
+afins **satisfazem** o cálculo do dígito verificador e ainda assim não são CPFs
+válidos, então são rejeitados à parte.
 
 A forma bruta é validada **antes** da normalização, de propósito: se a limpeza
-viesse primeiro, `<script>alert(1)</script>` seria reduzido a
-`scriptalert1script` e aceito como documento válido.
+viesse primeiro, `<script>alert(1)</script>` seria reduzido a dígitos e poderia
+passar. Só ponto e hífen — os separadores que o CPF realmente usa — são aceitos
+e removidos.
+
+*Contrapartida assumida:* a API rejeita documentos de outros países (DNI, RUT,
+passaporte). A mensagem de erro diz explicitamente
+`"CPF invalido: digito verificador nao confere"`, para que isso se leia como
+regra e não como defeito. Trocar de país significa mudar **apenas** o
+`Documento` — nenhum caso de uso, controller ou teste de outra camada muda.
 
 ### A validação vive nos tipos, não em Bean Validation
 

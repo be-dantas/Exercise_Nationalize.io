@@ -45,7 +45,7 @@ class NacionalidadeServiceTest {
     void preparar() {
         repositorio = new RepositorioFalso();
         pessoas = new PessoaService(repositorio);
-        pessoas.registrar(new Documento("12345678900"), new Nome("Nathaniel"),
+        pessoas.registrar(new Documento("10433218100"), new Nome("Nathaniel"),
                           new Nome("Silva"), new Email("nat@exemplo.com"));
     }
 
@@ -58,7 +58,7 @@ class NacionalidadeServiceTest {
             return Optional.of(new Nacionalidade("US", "United States", 0.35));
         };
 
-        new NacionalidadeService(pessoas, previsor).descobrir(new Documento("12345678900"));
+        new NacionalidadeService(pessoas, previsor).descobrir(new Documento("10433218100"));
 
         assertEquals("Nathaniel Silva", enviado.get());
     }
@@ -70,7 +70,7 @@ class NacionalidadeServiceTest {
                 nome -> Optional.of(new Nacionalidade("US", "United States", 0.35));
 
         var resultado = new NacionalidadeService(pessoas, previsor)
-                .descobrir(new Documento("12345678900"));
+                .descobrir(new Documento("10433218100"));
 
         assertTrue(resultado.previsao().isPresent());
         assertEquals("United States", resultado.previsao().get().nomeDoPais());
@@ -83,7 +83,7 @@ class NacionalidadeServiceTest {
         PrevisorDeNacionalidade previsor = nome -> Optional.empty();
 
         var resultado = new NacionalidadeService(pessoas, previsor)
-                .descobrir(new Documento("12345678900"));
+                .descobrir(new Documento("10433218100"));
 
         assertTrue(resultado.previsao().isEmpty());
     }
@@ -97,7 +97,7 @@ class NacionalidadeServiceTest {
 
         var servico = new NacionalidadeService(pessoas, previsor);
         assertThrows(ErroDeDominio.PessoaNaoEncontrada.class,
-                () -> servico.descobrir(new Documento("99988877766")));
+                () -> servico.descobrir(new Documento("96001338914")));
     }
 
     @Test
@@ -109,6 +109,6 @@ class NacionalidadeServiceTest {
 
         var servico = new NacionalidadeService(pessoas, previsor);
         assertThrows(ErroDeDominio.ServicoExternoIndisponivel.class,
-                () -> servico.descobrir(new Documento("12345678900")));
+                () -> servico.descobrir(new Documento("10433218100")));
     }
 }
