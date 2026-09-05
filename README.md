@@ -13,16 +13,19 @@ Java 21 · Spring Boot 4.1.1 · Maven · no database server, no Docker required.
 Requires a **JDK 21+**. Maven is not needed — the wrapper downloads it.
 
 ```bash
-./mvnw spring-boot:run          # or: make run
+./mvnw spring-boot:run
 ```
 
 Then open **http://localhost:8080**
 
-| Command | Wrapper | Make |
-|---|---|---|
-| Run | `./mvnw spring-boot:run` | `make run` |
-| Test | `./mvnw test` | `make test` |
-| Build a jar | `./mvnw clean package` | `make build` |
+| What | Command |
+|---|---|
+| Run | `./mvnw spring-boot:run` |
+| Test | `./mvnw test` |
+| Build a jar | `./mvnw clean package` |
+| Run the jar on its own | `java -jar target/*.jar` |
+
+Add `-q` to any of them for quiet output.
 
 **Demo credentials:** `admin` / `admin123`
 Only the BCrypt hash is stored, in `application.properties`.
@@ -215,7 +218,7 @@ contract are in English.
 ## Tests
 
 ```bash
-make test     # or ./mvnw test
+./mvnw test
 ```
 
 56 tests:
