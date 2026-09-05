@@ -1,5 +1,2 @@
-# saida do build - recriada a cada ./mvnw
 target/
-
-# configuracoes locais do editor
 .vscode/
