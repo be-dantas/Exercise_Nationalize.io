@@ -23,5 +23,12 @@ public interface PessoaRepository {
 
     List<Pessoa> listarTodas();
 
+    /**
+     * Remove a pessoa e informa se ela existia.
+     *
+     * Tambem e uma operacao unica e atomica, pelo mesmo motivo do
+     * salvarSeAusente: perguntar antes e agir depois deixaria duas exclusoes
+     * simultaneas relatarem sucesso, quando so uma removeu de fato.
+     */
     boolean remover(Documento documento);
 }

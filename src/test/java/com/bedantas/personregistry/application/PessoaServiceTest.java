@@ -48,6 +48,42 @@ class PessoaServiceTest {
     }
 
     @Test
+    @DisplayName("exclusoes simultaneas do mesmo documento: exatamente uma vence")
+    void exclusaoSimultaneaNaoDuplica() throws Exception {
+        for (int rodada = 0; rodada < 100; rodada++) {
+            var servico = servicoNovo();
+            var cpf = new Documento("529.982.247-25");
+            servico.registrar(cpf, new Nome("Beatriz"), new Sobrenome("Dantas"),
+                    new Email("be@exemplo.com"));
+
+            var largada = new CountDownLatch(1);
+            var sucessos = new AtomicInteger();
+            ExecutorService pool = Executors.newFixedThreadPool(NOMES.length);
+
+            for (int i = 0; i < NOMES.length; i++) {
+                pool.submit(() -> {
+                    try {
+                        largada.await();
+                        servico.excluir(cpf);
+                        sucessos.incrementAndGet();
+                    } catch (ErroDeDominio.PessoaNaoEncontrada esperado) {
+                        // quem perdeu a corrida recebe 404, e esta correto
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                });
+            }
+
+            largada.countDown();
+            pool.shutdown();
+            assertTrue(pool.awaitTermination(10, TimeUnit.SECONDS), "as threads travaram");
+
+            assertEquals(1, sucessos.get(), "rodada " + rodada + ": mais de uma exclusao relatou sucesso");
+            assertTrue(servico.listar().isEmpty(), "rodada " + rodada + ": sobrou registro");
+        }
+    }
+
+    @Test
     @DisplayName("cadastros simultaneos com o mesmo documento: exatamente um vence")
     void cadastroSimultaneoNaoDuplica() throws Exception {
         // Regressao: quando registrar perguntava "existe?" e so depois salvava,
