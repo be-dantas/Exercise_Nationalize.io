@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.bedantas.prova.domain.DadoInvalidoException;
 import com.bedantas.prova.domain.PessoaJaCadastradaException;
 import com.bedantas.prova.domain.PessoaNaoEncontradaException;
+import com.bedantas.prova.domain.ServicoExternoIndisponivelException;
 
 /**
  * Unico lugar que traduz excecao de dominio em status HTTP.
@@ -36,6 +37,12 @@ public class TratadorGlobalDeErros {
     public ResponseEntity<RespostaDeErro> naoEncontrada(PessoaNaoEncontradaException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new RespostaDeErro("NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(ServicoExternoIndisponivelException.class)
+    public ResponseEntity<RespostaDeErro> servicoExterno(ServicoExternoIndisponivelException e) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(new RespostaDeErro("EXTERNAL_SERVICE_UNAVAILABLE", e.getMessage()));
     }
 
     /** Corpo ausente ou JSON malformado. */
