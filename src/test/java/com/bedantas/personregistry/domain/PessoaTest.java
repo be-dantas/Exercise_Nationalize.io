@@ -26,13 +26,14 @@ class PessoaTest {
         // nome (ate 80 caracteres). Somados, dois nomes validos passavam desse
         // limite e a consulta de nacionalidade estourava, embora a pessoa
         // tivesse sido cadastrada sem problema.
-        String nome = "a".repeat(50);
-        String sobrenome = "b".repeat(45);
+        // Cada parte no limite maximo permitido: juntas, passam dele.
+        String nome = "a".repeat(Nome.MAXIMO);
+        String sobrenome = "b".repeat(Nome.MAXIMO);
 
         Pessoa pessoa = comNome(nome, sobrenome);
 
         assertDoesNotThrow(pessoa::nomeParaPrevisao);
-        assertEquals(96, pessoa.nomeParaPrevisao().length());
+        assertEquals(Nome.MAXIMO * 2 + 1, pessoa.nomeParaPrevisao().length());
         assertEquals(nome + " " + sobrenome, pessoa.nomeParaPrevisao());
     }
 

@@ -27,11 +27,10 @@ public class PessoaService {
     }
 
     public Pessoa registrar(Documento documento, Nome nome, Sobrenome sobrenome, Email email) {
-        if (repositorio.existe(documento)) {
+        var pessoa = new Pessoa(documento, nome, sobrenome, email);
+        if (!repositorio.salvarSeAusente(pessoa)) {
             throw new ErroDeDominio.PessoaJaCadastrada(documento.valor());
         }
-        var pessoa = new Pessoa(documento, nome, sobrenome, email);
-        repositorio.salvar(pessoa);
         return pessoa;
     }
 

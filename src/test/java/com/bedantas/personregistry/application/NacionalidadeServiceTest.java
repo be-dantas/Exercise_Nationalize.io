@@ -35,8 +35,7 @@ class NacionalidadeServiceTest {
     /** Repositorio falso, equivalente ao de producao para efeito de teste. */
     static class RepositorioFalso implements PessoaRepository {
         private final Map<Documento, Pessoa> dados = new ConcurrentHashMap<>();
-        public void salvar(Pessoa p) { dados.put(p.documento(), p); }
-        public boolean existe(Documento d) { return dados.containsKey(d); }
+        public boolean salvarSeAusente(Pessoa p) { return dados.putIfAbsent(p.documento(), p) == null; }
         public Optional<Pessoa> buscarPor(Documento d) { return Optional.ofNullable(dados.get(d)); }
         public java.util.List<Pessoa> listarTodas() { return java.util.List.copyOf(dados.values()); }
         public boolean remover(Documento d) { return dados.remove(d) != null; }

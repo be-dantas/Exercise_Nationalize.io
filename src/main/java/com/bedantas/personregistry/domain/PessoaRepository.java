@@ -9,9 +9,15 @@ import java.util.Optional;
  */
 public interface PessoaRepository {
 
-    void salvar(Pessoa pessoa);
-
-    boolean existe(Documento documento);
+    /**
+     * Guarda a pessoa apenas se o documento ainda nao estiver em uso.
+     * Devolve false quando ja existia.
+     *
+     * Precisa ser atomico: separar em "existe?" e depois "salvar" abre uma
+     * janela entre as duas chamadas, e dois cadastros simultaneos com o mesmo
+     * documento passavam os dois, um sobrescrevendo o outro em silencio.
+     */
+    boolean salvarSeAusente(Pessoa pessoa);
 
     Optional<Pessoa> buscarPor(Documento documento);
 

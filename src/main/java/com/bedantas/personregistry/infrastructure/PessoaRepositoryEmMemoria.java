@@ -24,14 +24,10 @@ public class PessoaRepositoryEmMemoria implements PessoaRepository {
 
     private final Map<Documento, Pessoa> dados = new ConcurrentHashMap<>();
 
+    /** putIfAbsent do ConcurrentHashMap: consulta e escrita num passo atomico. */
     @Override
-    public void salvar(Pessoa pessoa) {
-        dados.put(pessoa.documento(), pessoa);
-    }
-
-    @Override
-    public boolean existe(Documento documento) {
-        return dados.containsKey(documento);
+    public boolean salvarSeAusente(Pessoa pessoa) {
+        return dados.putIfAbsent(pessoa.documento(), pessoa) == null;
     }
 
     @Override

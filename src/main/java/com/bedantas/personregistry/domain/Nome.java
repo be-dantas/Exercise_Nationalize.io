@@ -6,8 +6,9 @@ import java.util.regex.Pattern;
 public record Nome(String valor) {
 
     private static final Pattern LETRAS = Pattern.compile("^[\\p{L} '-]+$");
-    private static final int MINIMO = 2;
-    private static final int MAXIMO = 80;
+    /** Visiveis ao pacote para que os testes acompanhem o limite escolhido. */
+    static final int MINIMO = 2;
+    static final int MAXIMO = 20;
 
     public Nome {
         valor = validar(valor, "nome");
