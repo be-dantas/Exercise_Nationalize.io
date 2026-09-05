@@ -1,22 +1,22 @@
 # Person Registry API
 
-REST API to register people and predict their likely nationality from an
-external service, with a web interface and authentication on the write
-operations.
+API REST para cadastrar pessoas e prever a provável nacionalidade delas a partir
+de um serviço externo, com interface web e autenticação nas operações de escrita.
 
-Java 21 · Spring Boot 4.1.1 · Maven · no database server, no Docker required.
+Java 21 · Spring Boot 4.1.1 · Maven · sem servidor de banco, sem Docker.
 
 ---
 
-## Running it
+## Como rodar
 
-Requires a **JDK 21+**. Maven is not needed — the wrapper downloads it.
+Requisito único: um **JDK 21 ou superior**. O Maven não precisa estar instalado —
+o wrapper baixa a versão certa sozinho.
 
 ```bash
 ./mvnw -q spring-boot:run
 ```
 
-On start it prints:
+Ao subir, imprime:
 
 ```
   cadastro.  ->  http://localhost:8080
@@ -25,56 +25,54 @@ On start it prints:
   encerrar: Ctrl+C
 ```
 
-The framework log is set to `WARN`, so a healthy start is quiet and only
-warnings and failures show up — a failed start still prints Spring's full
-diagnostic.
+Depois é só abrir **http://localhost:8080**.
 
-| What | Command |
+| O que | Comando |
 |---|---|
-| Run | `./mvnw -q spring-boot:run` |
-| Test | `./mvnw -q test` |
-| Build a jar | `./mvnw -q clean package` |
-| Run the jar on its own | `java -jar target/*.jar` |
+| Rodar | `./mvnw -q spring-boot:run` |
+| Testar | `./mvnw -q test` |
+| Gerar o jar | `./mvnw -q clean package` |
+| Rodar o jar sozinho | `java -jar target/*.jar` |
 
-`-q` keeps the build quiet, so **no output means success**. Failures still
-print in full: a failing test shows the assertion, a compile error shows the
-file and line, and a failed start shows Spring's diagnostic. Drop the `-q` for
-the complete Maven build log.
+O `-q` deixa o build silencioso: **nenhuma saída significa sucesso**. Falha
+continua aparecendo por inteiro — teste quebrado mostra a asserção, erro de
+compilação mostra arquivo e linha, e falha ao subir mostra o diagnóstico do
+Spring. Tire o `-q` para ver o log completo do Maven.
 
-**Demo credentials:** `admin` / `admin123`
-Only the BCrypt hash is stored, in `application.properties`.
+**Credenciais de demonstração:** `admin` / `admin123`
+Apenas o hash BCrypt fica guardado, em `application.properties`.
 
 ---
 
-## What the assignment asked for
+## O que a prova pedia
 
-| Requirement | Where |
+| Requisito | Onde está |
 |---|---|
-| Java + a persistence mechanism | Java 21; in-memory store, explicitly allowed by the assignment |
-| `POST /registrarName` with document, name, surname, e-mail | `PessoaController` |
+| Java + algum sistema de persistência | Java 21; armazenamento em memória, explicitamente permitido pelo enunciado |
+| `POST /registrarName` com documento, nome, sobrenome e e-mail | `PessoaController` |
 | `GET /list` | `PessoaController` |
-| `GET /list/{param}` | `PessoaController`, parameter is the document |
+| `GET /list/{param}` | `PessoaController`, o parâmetro é o documento |
 | `DELETE /list/{param}` | `PessoaController` |
-| `GET /findNacionalityByPerson/{param}` returning the nationality **name** | `NacionalidadeController` + `NationalizeClient` |
-| At least one type validation per endpoint | Value objects `Documento`, `Nome`, `Email` |
-| Authentication on the most critical endpoint | `FiltroDeAutenticacao` on `POST` and `DELETE` |
-| A web interface consuming at least one endpoint | `static/index.html`, consumes all of them |
+| `GET /findNacionalityByPerson/{param}` devolvendo o **nome** da nacionalidade | `NacionalidadeController` + `NationalizeClient` |
+| Pelo menos uma validação de tipo por API | Value Objects `Documento`, `Nome`, `Email` |
+| Autenticação na API mais crítica | `FiltroDeAutenticacao` no `POST` e no `DELETE` |
+| Interface web consumindo ao menos uma API | `static/index.html`, consome todas |
 
 ---
 
-## API
+## A API
 
-| Method | Path | Auth | Success | Errors |
+| Método | Rota | Auth | Sucesso | Erros |
 |---|---|:---:|---|---|
 | `POST` | `/auth/login` | — | `200` `{token, expiresInSeconds}` | `401` |
 | `POST` | `/registrarName` | 🔒 | `201` + `Location: /list/{document}` | `400` `401` `409` |
-| `GET` | `/list` | — | `200` array, sorted by name | — |
+| `GET` | `/list` | — | `200` lista ordenada por nome | — |
 | `GET` | `/list/{document}` | — | `200` | `400` `404` |
 | `DELETE` | `/list/{document}` | 🔒 | `204` | `400` `401` `404` |
 | `GET` | `/findNacionalityByPerson/{document}` | — | `200` `{name, nationality, probability}` | `400` `404` `503` |
 | `GET` | `/health` | — | `200` | — |
 
-Every error uses the same shape:
+Todo erro usa o mesmo formato:
 
 ```json
 { "error": "INVALID_DATA", "message": "e-mail invalido: nao-e-email" }
@@ -83,7 +81,10 @@ Every error uses the same shape:
 `INVALID_DATA` · `NOT_FOUND` · `ALREADY_EXISTS` · `UNAUTHORIZED` ·
 `MALFORMED_REQUEST` · `EXTERNAL_SERVICE_UNAVAILABLE`
 
-### Example session
+O contrato JSON está em inglês por ser a interface externa da API; o código
+está em português, acompanhando a língua do enunciado.
+
+### Exemplo de uso
 
 ```bash
 TOKEN=$(curl -s -X POST localhost:8080/auth/login \
@@ -92,8 +93,8 @@ TOKEN=$(curl -s -X POST localhost:8080/auth/login \
 
 curl -X POST localhost:8080/registrarName \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"document":"123.456.789-00","name":"Beatriz","lastName":"Dantas","email":"be@example.com"}'
-# 201  {"document":"12345678900", ...}      punctuation is normalised away
+  -d '{"document":"123.456.789-00","name":"Beatriz","lastName":"Dantas","email":"be@exemplo.com"}'
+# 201  {"document":"12345678900", ...}      a pontuação é normalizada
 
 curl localhost:8080/findNacionalityByPerson/12345678900
 # 200  {"name":"Beatriz Dantas","nationality":"Brazil","probability":0.665717}
@@ -101,162 +102,162 @@ curl localhost:8080/findNacionalityByPerson/12345678900
 
 ---
 
-## Decisions
+## Decisões
 
-The assignment says "at the discretion of whoever takes the test" four times,
-so these are the calls I made and why.
+O enunciado diz "a critério de quem realiza a prova" quatro vezes. Estas foram
+as escolhas e o motivo de cada uma.
 
-### The `{Parametro}` is the document
+### O `{Parametro}` é o documento
 
-It is the natural identity of the entity: unique, stable and meaningful to the
-business. An auto-increment id would leak a persistence detail into the public
-API.
+É a identidade natural da entidade: único, estável e significativo para o
+negócio. Um id autoincremento exporia um detalhe de persistência na API pública.
 
-*Trade-off:* if the document is a national id, it becomes PII in a URL path —
-which lands in access logs, proxies and browser history in plain text. For this
-scope the readability of `GET /list/12345678900` wins, but in a system holding
-real personal data I would use an opaque id in the path.
+*Contrapartida:* se o documento for um identificador nacional, ele vira dado
+pessoal dentro da URL — e URL vai parar em log de acesso, proxy e histórico do
+navegador, em texto puro. Neste escopo a legibilidade de
+`GET /list/12345678900` compensa, mas num sistema com dados pessoais reais eu
+usaria um id opaco no caminho.
 
-### Document validation is generic, not CPF-specific
+### A validação do documento é genérica, não específica de CPF
 
-6–20 alphanumeric characters after stripping `.` `-` `/` and spaces. The
-assignment says *"documento"*, not *"CPF"*, so validating Brazilian check digits
-would reject a legitimate Argentinian DNI or Chilean RUT and look like a bug. A
-country-specific validator plugs into the same value object without changing
-anything else.
+De 6 a 20 caracteres alfanuméricos, depois de remover `.` `-` `/` e espaço. O
+enunciado diz *"documento"*, não *"CPF"*, então validar dígito verificador
+brasileiro rejeitaria um DNI argentino ou um RUT chileno legítimos e pareceria
+bug. Um validador específico por país plugaria no mesmo Value Object sem mudar
+mais nada.
 
-The raw shape is validated **before** normalising, deliberately: cleaning first
-would reduce `<script>alert(1)</script>` to `scriptalert1script` and accept it
-as a valid document.
+A forma bruta é validada **antes** da normalização, de propósito: se a limpeza
+viesse primeiro, `<script>alert(1)</script>` seria reduzido a
+`scriptalert1script` e aceito como documento válido.
 
-### Validation lives in the types, not in Bean Validation
+### A validação vive nos tipos, não em Bean Validation
 
-`Documento`, `Nome` and `Email` validate inside their constructors, so an
-invalid instance cannot exist anywhere in the system.
+`Documento`, `Nome` e `Email` validam dentro do próprio construtor, então uma
+instância inválida não chega a existir em lugar nenhum do sistema.
 
-`@Valid` / `@NotBlank` on the request DTO would cover `POST` only — it does not
-apply to a `@PathVariable`, so `GET` and `DELETE` would be left uncovered.
-Using both would duplicate each rule in two places that can drift apart. One
-rule, one owner.
+`@Valid` / `@NotBlank` no DTO cobriria apenas o `POST` — anotação de DTO não
+vale para `@PathVariable`, então `GET` e `DELETE` ficariam descobertos. Usar os
+dois duplicaria cada regra em dois lugares que podem divergir. Uma regra, um
+dono.
 
-### The nationality endpoint returns the country name
+### O endpoint de nacionalidade devolve o nome do país
 
-`api.nationalize.io` returns ISO 3166-1 alpha-2 codes (`"BR"`), and the
-assignment asks for the *name* of the nationality. `java.util.Locale` performs
-the conversion from the JDK's bundled CLDR data — no extra dependency.
+A `api.nationalize.io` responde com código ISO 3166-1 alpha-2 (`"BR"`), e o
+enunciado pede o *nome* da nacionalidade. O `java.util.Locale` faz a conversão
+usando os dados CLDR que já vêm no JDK — sem dependência extra.
 
-**The query uses first name + surname.** Measured against the live API during
-development:
+**A consulta usa nome + sobrenome.** Medido contra a API real durante o
+desenvolvimento:
 
-| Query | Result |
+| Consulta | Resultado |
 |---|---|
-| `Beatriz` | 🇪🇸 Spain 19.8% — wrong |
-| `Beatriz Dantas` | 🇧🇷 Brazil **66.6%** — right |
-| `Beatriz Dantas da Silva` | 🇧🇷 Brazil 36.5% — right, less confident |
-| `Yuki` → `Yuki Tanaka` | Japan 46.3% → **65.5%** |
+| `Beatriz` | 🇪🇸 Espanha 19,8% — errado |
+| `Beatriz Dantas` | 🇧🇷 Brasil **66,6%** — certo |
+| `Beatriz Dantas da Silva` | 🇧🇷 Brasil 36,5% — certo, menos confiante |
+| `Yuki` → `Yuki Tanaka` | Japão 46,3% → **65,5%** |
 
-Middle names dilute the prediction, so first name + surname is the sweet spot —
-which is exactly the field structure the assignment specifies. The response
-echoes the name that was actually sent, so the payload explains itself.
+Nome do meio dilui a previsão, então nome + sobrenome é o ponto ótimo — que é
+exatamente a estrutura de campos que o enunciado especifica. A resposta devolve
+o nome que foi realmente enviado, para ser autoexplicativa.
 
-When the service has no guess, the endpoint returns `200` with a null
-nationality: the person exists, only the prediction is missing. A `404` would
-wrongly suggest the person is not registered.
+Quando o serviço não tem palpite, o endpoint responde `200` com nacionalidade
+nula: a pessoa existe, só falta a previsão. Um `404` daria a entender,
+erradamente, que a pessoa não está cadastrada.
 
-### Storage is in memory
+### O armazenamento é em memória
 
-The assignment allows *"banco de dados, armazenamento em memória, etc."*. A
-`ConcurrentHashMap` behind the `PessoaRepository` port means the evaluator runs
-one command with nothing to install.
+O enunciado permite *"banco de dados, armazenamento em memória, etc."*. Um
+`ConcurrentHashMap` atrás da porta `PessoaRepository` faz o avaliador rodar com
+um comando, sem instalar nada.
 
-*Consequence:* data does not survive a restart. Swapping in JPA/PostgreSQL means
-adding one adapter class — no use case, controller or domain test changes. That
-substitutability is the point of the port.
+*Consequência:* os dados não sobrevivem a um restart. Trocar por JPA/PostgreSQL
+significa acrescentar uma classe adapter — nenhum caso de uso, controller ou
+teste de domínio muda. Essa substituibilidade é justamente o motivo da porta
+existir.
 
-### Authentication protects the write operations
+### A autenticação protege as operações de escrita
 
-`POST /registrarName` and `DELETE /list/{document}` require a token; the three
-`GET` endpoints stay open.
+`POST /registrarName` e `DELETE /list/{document}` exigem token; os três `GET`
+ficam abertos.
 
-`DELETE` is the most critical operation — destructive and irreversible — and
-`POST` mutates state as well. Reads change nothing, and leaving them open lets
-the API be evaluated without friction.
+`DELETE` é a operação mais crítica — destrutiva e irreversível — e o `POST`
+também altera estado. Leitura não muda nada, e deixá-la aberta permite avaliar
+a API sem atrito.
 
-**Opaque token rather than JWT.** The application runs as a single instance, so
-JWT's stateless validation would buy nothing here, while an opaque token gives
-immediate revocation. Scaling out would move the token map to Redis, or switch
-to JWT and accept a revocation list.
+**Token opaco em vez de JWT.** A aplicação roda em instância única, então a
+validação sem estado do JWT não traria benefício algum aqui, enquanto o token
+opaco dá revogação imediata. Escalar horizontalmente moveria o mapa de tokens
+para um Redis, ou trocaria por JWT aceitando manter uma lista de revogados.
 
-**Written by hand rather than using `spring-boot-starter-security`.** The
-requirement is small and a 40-line `OncePerRequestFilter` keeps every line of
-the access control visible and explainable. Only `spring-security-crypto` is
-pulled in, for BCrypt — it brings no filter chain and no auto-configuration.
+**Escrito à mão em vez de usar o `spring-boot-starter-security`.** O requisito é
+pequeno, e um `OncePerRequestFilter` de 40 linhas mantém cada linha do controle
+de acesso visível e explicável. Só o `spring-security-crypto` entra, para o
+BCrypt — ele não traz cadeia de filtros nem autoconfiguração.
 
-Details worth noting:
-- The password is stored as a BCrypt hash, never in plain text.
-- The hash is verified even when the username is wrong, so response time does
-  not reveal which usernames exist.
-- A wrong username and a wrong password return the same message.
-- In the browser the token lives in memory only — not in `localStorage`, and
-  never in the page source.
+Detalhes que valem registro:
 
-### Architecture: Clean Architecture with part of tactical DDD
+- A senha é guardada como hash BCrypt, nunca em texto puro.
+- O hash é verificado mesmo quando o usuário está errado, para o tempo de
+  resposta não revelar quais usuários existem.
+- Usuário errado e senha errada devolvem a mesma mensagem.
+- No navegador o token vive apenas em memória — não vai para `localStorage` nem
+  aparece no código-fonte da página.
+- As linhas da tabela são montadas com `createElement`/`textContent`, não com
+  `innerHTML`, então um nome com HTML dentro aparece como texto e nunca executa.
+
+### Arquitetura: Clean Architecture com parte do DDD tático
 
 ```
-domain/          entities, value objects, ports, domain errors   — plain Java
-application/     use cases                                       — plain Java
-infrastructure/  in-memory repository, HTTP client, auth
-presentation/    controllers, DTOs, error handling, static page
+domain/          entidades, value objects, portas, erros de domínio  — Java puro
+application/     casos de uso                                        — Java puro
+infrastructure/  repositório em memória, cliente HTTP, autenticação
+presentation/    controllers, DTOs, tratamento de erro, página estática
 ```
 
-Dependencies point inwards: `domain` and `application` import no framework at
-all, which is why the use cases are tested without booting Spring and without
-network access.
+As dependências apontam para dentro: `domain` e `application` não importam
+framework nenhum, e é por isso que os casos de uso são testados sem subir o
+Spring e sem acessar a rede.
 
-**Used:** value object, entity, repository port, gateway port.
-**Deliberately not used:** aggregates, domain events, factories,
-specifications, bounded contexts. This domain has one entity and four
-attributes — applying the full catalogue would add indirection without reducing
-complexity.
+**Usados:** value object, entity, porta de repositório, porta de gateway.
+**Deixados de fora de propósito:** aggregate, domain event, factory,
+specification, bounded context. Este domínio tem uma entidade e quatro
+atributos — aplicar o catálogo inteiro adicionaria indireção sem reduzir
+complexidade.
 
-The five use cases are grouped into two services rather than five
-single-method classes, and DTOs are nested inside the controller that uses
-them. Both choices trade ceremony for readability at this size.
-
-*Note on language:* domain names are in Portuguese (`Pessoa`, `Documento`),
-matching the language of the assignment; technical suffixes and the JSON
-contract are in English.
+Os cinco casos de uso estão agrupados em dois services em vez de cinco classes
+de um método, e os DTOs ficam aninhados no controller que os usa. As duas
+escolhas trocam cerimônia por legibilidade neste tamanho.
 
 ---
 
-## Tests
+## Testes
 
 ```bash
 ./mvnw -q test
 ```
 
-56 tests:
+56 testes:
 
-| Suite | What it covers |
+| Suíte | O que cobre |
 |---|---|
-| `DocumentoTest`, `NomeTest`, `EmailTest` | validation rules, normalisation, injection payloads |
-| `NacionalidadeServiceTest` | use case with fake adapters — no network, no Spring |
-| `ApiEndToEndTest` | boots the app on a real port and exercises every endpoint over HTTP, authentication included |
+| `DocumentoTest`, `NomeTest`, `EmailTest` | regras de validação, normalização e payloads de injeção |
+| `NacionalidadeServiceTest` | caso de uso com adapters falsos — sem rede, sem Spring |
+| `ApiEndToEndTest` | sobe a aplicação numa porta real e exercita todos os endpoints por HTTP, autenticação incluída |
 
-The end-to-end suite does not call the external service; that path is covered
-by fakes, so the whole suite runs offline.
+A suíte end-to-end não chama o serviço externo; aquele caminho é coberto por
+implementações falsas, então tudo roda sem internet.
 
 ---
 
-## Limitations, and what I would do next
+## Limitações, e o que viria depois
 
-- **Data is not persisted** across restarts. One adapter class away from a real
-  database.
-- **No cache on the external call.** `api.nationalize.io` rate-limits the free
-  tier at around 100 requests/day; a cache inside the adapter would be the next
-  step and would not touch any other layer.
-- **One fixed user.** The assignment does not ask for user management. Real
-  users would live in the repository, behind the same port.
-- **No containerisation.** Running takes one command and a JDK; containerising
-  would be the natural next step for deployment.
-- **The document is PII in the URL path** — discussed above.
+- **Os dados não persistem** entre execuções. Está a uma classe adapter de um
+  banco de verdade.
+- **Não há cache na chamada externa.** A `api.nationalize.io` limita o plano
+  gratuito em torno de 100 requisições por dia; um cache dentro do adapter seria
+  o próximo passo e não tocaria em nenhuma outra camada.
+- **Um único usuário fixo.** O enunciado não pede gestão de usuários. Usuários
+  reais viveriam no repositório, atrás da mesma porta.
+- **Sem conteinerização.** Rodar exige um comando e um JDK; containerizar seria
+  o passo natural para deploy.
+- **O documento é dado pessoal na URL** — discutido acima.
