@@ -54,7 +54,7 @@ class NacionalidadeServiceTest {
     void consultaUsaNomeCompleto() {
         var enviado = new java.util.concurrent.atomic.AtomicReference<String>();
         PrevisorDeNacionalidade previsor = nome -> {
-            enviado.set(nome.valor());
+            enviado.set(nome);
             return Optional.of(new Nacionalidade("US", "United States", 0.35));
         };
 

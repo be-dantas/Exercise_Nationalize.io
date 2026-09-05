@@ -15,7 +15,6 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
 import com.bedantas.personregistry.domain.Nacionalidade;
-import com.bedantas.personregistry.domain.Nome;
 import com.bedantas.personregistry.domain.PrevisorDeNacionalidade;
 import com.bedantas.personregistry.domain.ErroDeDominio;
 
@@ -50,15 +49,15 @@ public class NationalizeClient implements PrevisorDeNacionalidade {
     }
 
     @Override
-    public Optional<Nacionalidade> preverPara(Nome nome) {
-        return cache.computeIfAbsent(nome.valor().toLowerCase(), chave -> consultar(nome));
+    public Optional<Nacionalidade> preverPara(String nomeCompleto) {
+        return cache.computeIfAbsent(nomeCompleto.toLowerCase(), chave -> consultar(nomeCompleto));
     }
 
-    private Optional<Nacionalidade> consultar(Nome nome) {
+    private Optional<Nacionalidade> consultar(String nomeCompleto) {
         Resposta resposta;
         try {
             resposta = http.get()
-                    .uri(uri -> uri.queryParam("name", nome.valor()).build())
+                    .uri(uri -> uri.queryParam("name", nomeCompleto).build())
                     .retrieve()
                     .body(Resposta.class);
         } catch (HttpStatusCodeException e) {

@@ -11,5 +11,5 @@ import java.util.Optional;
 public interface PrevisorDeNacionalidade {
 
     /** Vazio quando o servico nao tem palpite para o nome. */
-    Optional<Nacionalidade> preverPara(Nome nome);
+    Optional<Nacionalidade> preverPara(String nomeCompleto);
 }

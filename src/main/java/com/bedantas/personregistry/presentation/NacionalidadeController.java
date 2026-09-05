@@ -34,8 +34,8 @@ public class NacionalidadeController {
         var resultado = servico.descobrir(new Documento(document));
         return resultado.previsao()
                 .map(n -> new NacionalidadeResponse(
-                        resultado.pessoa().nomeParaPrevisao().valor(), n.nomeDoPais(), n.probabilidade()))
+                        resultado.pessoa().nomeParaPrevisao(), n.nomeDoPais(), n.probabilidade()))
                 .orElseGet(() -> new NacionalidadeResponse(
-                        resultado.pessoa().nomeParaPrevisao().valor(), null, null));
+                        resultado.pessoa().nomeParaPrevisao(), null, null));
     }
 }

@@ -22,8 +22,14 @@ public record Pessoa(Documento documento, Nome nome, Nome sobrenome, Email email
      *
      * Nome do meio dilui a previsao, entao nome + sobrenome e o ponto otimo -
      * que e exatamente a estrutura de campos pedida pelo enunciado.
+     *
+     * Devolve String, e nao Nome, de proposito: Nome valida UMA PARTE do nome
+     * (ate 80 caracteres). Envolver o nome completo nesse tipo reaplicava o
+     * limite de uma parte ao todo, e uma pessoa com nome e sobrenome longos -
+     * ambos validos isoladamente - falhava na consulta de nacionalidade. O
+     * texto aqui e derivado de partes ja validadas: nao ha o que validar de novo.
      */
-    public Nome nomeParaPrevisao() {
-        return new Nome(nome.valor() + " " + sobrenome.valor());
+    public String nomeParaPrevisao() {
+        return nome.valor() + " " + sobrenome.valor();
     }
 }
