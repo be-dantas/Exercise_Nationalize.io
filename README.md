@@ -13,7 +13,7 @@ Java 21 · Spring Boot 4.1.1 · Maven · no database server, no Docker required.
 Requires a **JDK 21+**. Maven is not needed — the wrapper downloads it.
 
 ```bash
-./mvnw spring-boot:run
+./mvnw -q spring-boot:run
 ```
 
 On start it prints:
@@ -31,15 +31,15 @@ diagnostic.
 
 | What | Command |
 |---|---|
-| Run | `./mvnw spring-boot:run` |
-| Test | `./mvnw test` |
-| Build a jar | `./mvnw clean package` |
+| Run | `./mvnw -q spring-boot:run` |
+| Test | `./mvnw -q test` |
+| Build a jar | `./mvnw -q clean package` |
 | Run the jar on its own | `java -jar target/*.jar` |
 
-Builds are quiet by default — `.mvn/maven.config` carries `-q`, so **no output
-means success**. Failures still print in full: a failing test shows the
-assertion, a compile error shows the file and line, and a failed start shows
-Spring's diagnostic. Delete that file for the full Maven build log.
+`-q` keeps the build quiet, so **no output means success**. Failures still
+print in full: a failing test shows the assertion, a compile error shows the
+file and line, and a failed start shows Spring's diagnostic. Drop the `-q` for
+the complete Maven build log.
 
 **Demo credentials:** `admin` / `admin123`
 Only the BCrypt hash is stored, in `application.properties`.
@@ -232,7 +232,7 @@ contract are in English.
 ## Tests
 
 ```bash
-./mvnw test
+./mvnw -q test
 ```
 
 56 tests:
