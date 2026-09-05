@@ -36,7 +36,7 @@ class DocumentoTest {
                              "123456789012345678901", "<script>alert(1)</script>" })
     @DisplayName("rejeita nulo, vazio, curto demais, longo demais e lixo")
     void rejeitaInvalidos(String entrada) {
-        assertThrows(DadoInvalidoException.class, () -> new Documento(entrada));
+        assertThrows(ErroDeDominio.DadoInvalido.class, () -> new Documento(entrada));
     }
 
     @Test

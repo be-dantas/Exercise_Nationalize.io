@@ -17,10 +17,9 @@ import com.bedantas.personregistry.domain.Email;
 import com.bedantas.personregistry.domain.Nacionalidade;
 import com.bedantas.personregistry.domain.Nome;
 import com.bedantas.personregistry.domain.Pessoa;
-import com.bedantas.personregistry.domain.PessoaNaoEncontradaException;
+import com.bedantas.personregistry.domain.ErroDeDominio;
 import com.bedantas.personregistry.domain.PessoaRepository;
 import com.bedantas.personregistry.domain.PrevisorDeNacionalidade;
-import com.bedantas.personregistry.domain.ServicoExternoIndisponivelException;
 
 /**
  * Roda sem rede e sem subir o Spring. So e possivel porque o servico externo
@@ -97,7 +96,7 @@ class NacionalidadeServiceTest {
         };
 
         var servico = new NacionalidadeService(pessoas, previsor);
-        assertThrows(PessoaNaoEncontradaException.class,
+        assertThrows(ErroDeDominio.PessoaNaoEncontrada.class,
                 () -> servico.descobrir(new Documento("99988877766")));
     }
 
@@ -105,11 +104,11 @@ class NacionalidadeServiceTest {
     @DisplayName("falha do servico externo propaga como indisponibilidade")
     void servicoExternoFora() {
         PrevisorDeNacionalidade previsor = nome -> {
-            throw new ServicoExternoIndisponivelException("fora do ar", new RuntimeException());
+            throw new ErroDeDominio.ServicoExternoIndisponivel("fora do ar", new RuntimeException());
         };
 
         var servico = new NacionalidadeService(pessoas, previsor);
-        assertThrows(ServicoExternoIndisponivelException.class,
+        assertThrows(ErroDeDominio.ServicoExternoIndisponivel.class,
                 () -> servico.descobrir(new Documento("12345678900")));
     }
 }

@@ -17,7 +17,7 @@ import org.springframework.web.client.RestClient;
 import com.bedantas.personregistry.domain.Nacionalidade;
 import com.bedantas.personregistry.domain.Nome;
 import com.bedantas.personregistry.domain.PrevisorDeNacionalidade;
-import com.bedantas.personregistry.domain.ServicoExternoIndisponivelException;
+import com.bedantas.personregistry.domain.ErroDeDominio;
 
 /**
  * Adapter para api.nationalize.io.
@@ -62,9 +62,9 @@ public class NationalizeClient implements PrevisorDeNacionalidade {
                     .retrieve()
                     .body(Resposta.class);
         } catch (HttpStatusCodeException e) {
-            throw new ServicoExternoIndisponivelException(mensagemPara(e), e);
+            throw new ErroDeDominio.ServicoExternoIndisponivel(mensagemPara(e), e);
         } catch (Exception e) {
-            throw new ServicoExternoIndisponivelException(
+            throw new ErroDeDominio.ServicoExternoIndisponivel(
                     "nao foi possivel consultar o servico de nacionalidade", e);
         }
 

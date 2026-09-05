@@ -4,8 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.bedantas.personregistry.domain.PessoaJaCadastradaException;
-import com.bedantas.personregistry.domain.PessoaNaoEncontradaException;
+import com.bedantas.personregistry.domain.ErroDeDominio;
 import com.bedantas.personregistry.domain.Documento;
 import com.bedantas.personregistry.domain.Email;
 import com.bedantas.personregistry.domain.Nome;
@@ -28,7 +27,7 @@ public class PessoaService {
 
     public Pessoa registrar(Documento documento, Nome nome, Nome sobrenome, Email email) {
         if (repositorio.existe(documento)) {
-            throw new PessoaJaCadastradaException(documento.valor());
+            throw new ErroDeDominio.PessoaJaCadastrada(documento.valor());
         }
         var pessoa = new Pessoa(documento, nome, sobrenome, email);
         repositorio.salvar(pessoa);
@@ -37,7 +36,7 @@ public class PessoaService {
 
     public Pessoa obter(Documento documento) {
         return repositorio.buscarPor(documento)
-                .orElseThrow(() -> new PessoaNaoEncontradaException(documento.valor()));
+                .orElseThrow(() -> new ErroDeDominio.PessoaNaoEncontrada(documento.valor()));
     }
 
     public List<Pessoa> listar() {
@@ -46,7 +45,7 @@ public class PessoaService {
 
     public void excluir(Documento documento) {
         if (!repositorio.remover(documento)) {
-            throw new PessoaNaoEncontradaException(documento.valor());
+            throw new ErroDeDominio.PessoaNaoEncontrada(documento.valor());
         }
     }
 }

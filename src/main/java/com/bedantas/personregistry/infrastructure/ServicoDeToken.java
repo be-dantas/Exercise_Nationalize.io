@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import com.bedantas.personregistry.domain.CredencialInvalidaException;
+import com.bedantas.personregistry.domain.ErroDeDominio;
 
 /**
  * Autenticacao por token opaco.
@@ -53,7 +53,7 @@ public class ServicoDeToken {
         boolean senhaConfere = cifrador.matches(senha == null ? "" : senha, senhaHash);
 
         if (!usuarioConfere || !senhaConfere) {
-            throw new CredencialInvalidaException();
+            throw new ErroDeDominio.CredencialInvalida();
         }
 
         byte[] bruto = new byte[BYTES_DO_TOKEN];

@@ -30,12 +30,12 @@ class NomeTest {
     @ValueSource(strings = { "   ", "A", "Bea3triz", "Bea@triz", "<b>x</b>" })
     @DisplayName("rejeita nulo, vazio, curto demais, numero e simbolo")
     void rejeitaInvalidos(String entrada) {
-        assertThrows(DadoInvalidoException.class, () -> new Nome(entrada));
+        assertThrows(ErroDeDominio.DadoInvalido.class, () -> new Nome(entrada));
     }
 
     @Test
     @DisplayName("rejeita nome longo demais")
     void rejeitaLongoDemais() {
-        assertThrows(DadoInvalidoException.class, () -> new Nome("a".repeat(81)));
+        assertThrows(ErroDeDominio.DadoInvalido.class, () -> new Nome("a".repeat(81)));
     }
 }

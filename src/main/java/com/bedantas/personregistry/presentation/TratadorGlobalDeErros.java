@@ -6,11 +6,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.bedantas.personregistry.domain.CredencialInvalidaException;
-import com.bedantas.personregistry.domain.DadoInvalidoException;
-import com.bedantas.personregistry.domain.PessoaJaCadastradaException;
-import com.bedantas.personregistry.domain.PessoaNaoEncontradaException;
-import com.bedantas.personregistry.domain.ServicoExternoIndisponivelException;
+import com.bedantas.personregistry.domain.ErroDeDominio;
 
 /**
  * Unico lugar que traduz excecao de dominio em status HTTP.
@@ -22,32 +18,32 @@ public class TratadorGlobalDeErros {
     public record RespostaDeErro(String error, String message) {
     }
 
-    @ExceptionHandler(DadoInvalidoException.class)
-    public ResponseEntity<RespostaDeErro> dadoInvalido(DadoInvalidoException e) {
+    @ExceptionHandler(ErroDeDominio.DadoInvalido.class)
+    public ResponseEntity<RespostaDeErro> dadoInvalido(ErroDeDominio.DadoInvalido e) {
         return ResponseEntity.badRequest()
                 .body(new RespostaDeErro("INVALID_DATA", e.getMessage()));
     }
 
-    @ExceptionHandler(PessoaJaCadastradaException.class)
-    public ResponseEntity<RespostaDeErro> jaCadastrada(PessoaJaCadastradaException e) {
+    @ExceptionHandler(ErroDeDominio.PessoaJaCadastrada.class)
+    public ResponseEntity<RespostaDeErro> jaCadastrada(ErroDeDominio.PessoaJaCadastrada e) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(new RespostaDeErro("ALREADY_EXISTS", e.getMessage()));
     }
 
-    @ExceptionHandler(PessoaNaoEncontradaException.class)
-    public ResponseEntity<RespostaDeErro> naoEncontrada(PessoaNaoEncontradaException e) {
+    @ExceptionHandler(ErroDeDominio.PessoaNaoEncontrada.class)
+    public ResponseEntity<RespostaDeErro> naoEncontrada(ErroDeDominio.PessoaNaoEncontrada e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new RespostaDeErro("NOT_FOUND", e.getMessage()));
     }
 
-    @ExceptionHandler(ServicoExternoIndisponivelException.class)
-    public ResponseEntity<RespostaDeErro> servicoExterno(ServicoExternoIndisponivelException e) {
+    @ExceptionHandler(ErroDeDominio.ServicoExternoIndisponivel.class)
+    public ResponseEntity<RespostaDeErro> servicoExterno(ErroDeDominio.ServicoExternoIndisponivel e) {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(new RespostaDeErro("EXTERNAL_SERVICE_UNAVAILABLE", e.getMessage()));
     }
 
-    @ExceptionHandler(CredencialInvalidaException.class)
-    public ResponseEntity<RespostaDeErro> credencialInvalida(CredencialInvalidaException e) {
+    @ExceptionHandler(ErroDeDominio.CredencialInvalida.class)
+    public ResponseEntity<RespostaDeErro> credencialInvalida(ErroDeDominio.CredencialInvalida e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new RespostaDeErro("UNAUTHORIZED", e.getMessage()));
     }

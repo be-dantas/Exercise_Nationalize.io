@@ -29,7 +29,7 @@ public class PessoaController {
     /**
      * O contrato JSON e em ingles porque e a interface externa da API.
      * A validacao acontece na construcao dos Value Objects logo abaixo:
-     * qualquer campo invalido lanca DadoInvalidoException, traduzida em 400
+     * qualquer campo invalido lanca ErroDeDominio.DadoInvalido, traduzida em 400
      * pelo TratadorGlobalDeErros.
      */
     public record RegistrarPessoaRequest(

@@ -10,14 +10,14 @@ public record Nome(String valor) {
 
     public Nome {
         if (valor == null || valor.isBlank()) {
-            throw new DadoInvalidoException("nome e obrigatorio");
+            throw new ErroDeDominio.DadoInvalido("nome e obrigatorio");
         }
         valor = valor.trim();
         if (valor.length() < 2 || valor.length() > 80) {
-            throw new DadoInvalidoException("nome deve ter de 2 a 80 caracteres");
+            throw new ErroDeDominio.DadoInvalido("nome deve ter de 2 a 80 caracteres");
         }
         if (!LETRAS.matcher(valor).matches()) {
-            throw new DadoInvalidoException("nome contem caracteres invalidos: " + valor);
+            throw new ErroDeDominio.DadoInvalido("nome contem caracteres invalidos: " + valor);
         }
     }
 }

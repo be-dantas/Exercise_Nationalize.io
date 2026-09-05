@@ -39,8 +39,6 @@ continua aparecendo por inteiro — teste quebrado mostra a asserção, erro de
 compilação mostra arquivo e linha, e falha ao subir mostra o diagnóstico do
 Spring. Tire o `-q` para ver o log completo do Maven.
 
-**Credenciais de demonstração:** `admin` / `admin123`
-Apenas o hash BCrypt fica guardado, em `application.properties`.
 
 ---
 

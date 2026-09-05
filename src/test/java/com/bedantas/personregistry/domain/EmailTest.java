@@ -31,6 +31,6 @@ class EmailTest {
                              "espaco no@meio.com", "dois@@arrobas.com" })
     @DisplayName("rejeita enderecos invalidos")
     void rejeitaInvalidos(String entrada) {
-        assertThrows(DadoInvalidoException.class, () -> new Email(entrada));
+        assertThrows(ErroDeDominio.DadoInvalido.class, () -> new Email(entrada));
     }
 }

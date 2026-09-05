@@ -23,15 +23,15 @@ public record Documento(String valor) {
 
     public Documento {
         if (valor == null || valor.isBlank()) {
-            throw new DadoInvalidoException("documento e obrigatorio");
+            throw new ErroDeDominio.DadoInvalido("documento e obrigatorio");
         }
         valor = valor.trim();
         if (!BRUTO.matcher(valor).matches()) {
-            throw new DadoInvalidoException("documento contem caracteres invalidos");
+            throw new ErroDeDominio.DadoInvalido("documento contem caracteres invalidos");
         }
         valor = valor.replaceAll("[.\\-/ ]", "");
         if (!NORMALIZADO.matcher(valor).matches()) {
-            throw new DadoInvalidoException(
+            throw new ErroDeDominio.DadoInvalido(
                     "documento deve ter de 6 a 20 caracteres alfanumericos");
         }
     }
