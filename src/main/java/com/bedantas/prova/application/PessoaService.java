@@ -1,5 +1,7 @@
 package com.bedantas.prova.application;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.bedantas.prova.domain.PessoaJaCadastradaException;
@@ -36,5 +38,15 @@ public class PessoaService {
     public Pessoa obter(Documento documento) {
         return repositorio.buscarPor(documento)
                 .orElseThrow(() -> new PessoaNaoEncontradaException(documento.valor()));
+    }
+
+    public List<Pessoa> listar() {
+        return repositorio.listarTodas();
+    }
+
+    public void excluir(Documento documento) {
+        if (!repositorio.remover(documento)) {
+            throw new PessoaNaoEncontradaException(documento.valor());
+        }
     }
 }

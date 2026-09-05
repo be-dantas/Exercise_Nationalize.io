@@ -1,5 +1,6 @@
 package com.bedantas.prova.domain;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -13,4 +14,8 @@ public interface PessoaRepository {
     boolean existe(Documento documento);
 
     Optional<Pessoa> buscarPor(Documento documento);
+
+    List<Pessoa> listarTodas();
+
+    boolean remover(Documento documento);
 }

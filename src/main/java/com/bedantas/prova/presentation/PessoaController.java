@@ -1,8 +1,10 @@
 package com.bedantas.prova.presentation;
 
 import java.net.URI;
+import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -66,5 +68,17 @@ public class PessoaController {
     @GetMapping("/list/{document}")
     public PessoaResponse obter(@PathVariable String document) {
         return PessoaResponse.de(servico.obter(new Documento(document)));
+    }
+
+    @GetMapping("/list")
+    public List<PessoaResponse> listar() {
+        return servico.listar().stream().map(PessoaResponse::de).toList();
+    }
+
+    /** 204: sucesso sem corpo. Excluir de novo devolve 404. */
+    @DeleteMapping("/list/{document}")
+    public ResponseEntity<Void> excluir(@PathVariable String document) {
+        servico.excluir(new Documento(document));
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,5 +1,7 @@
 package com.bedantas.prova.infrastructure;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,5 +37,19 @@ public class PessoaRepositoryEmMemoria implements PessoaRepository {
     @Override
     public Optional<Pessoa> buscarPor(Documento documento) {
         return Optional.ofNullable(dados.get(documento));
+    }
+
+    /** Ordenado por nome para a saida ser estavel entre chamadas. */
+    @Override
+    public List<Pessoa> listarTodas() {
+        return dados.values().stream()
+                .sorted(Comparator.comparing((Pessoa p) -> p.nome().valor())
+                        .thenComparing(p -> p.sobrenome().valor()))
+                .toList();
+    }
+
+    @Override
+    public boolean remover(Documento documento) {
+        return dados.remove(documento) != null;
     }
 }

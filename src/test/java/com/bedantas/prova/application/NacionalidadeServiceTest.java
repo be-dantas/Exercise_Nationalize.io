@@ -38,6 +38,8 @@ class NacionalidadeServiceTest {
         public void salvar(Pessoa p) { dados.put(p.documento(), p); }
         public boolean existe(Documento d) { return dados.containsKey(d); }
         public Optional<Pessoa> buscarPor(Documento d) { return Optional.ofNullable(dados.get(d)); }
+        public java.util.List<Pessoa> listarTodas() { return java.util.List.copyOf(dados.values()); }
+        public boolean remover(Documento d) { return dados.remove(d) != null; }
     }
 
     @BeforeEach
