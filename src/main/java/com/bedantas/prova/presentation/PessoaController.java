@@ -3,6 +3,8 @@ package com.bedantas.prova.presentation;
 import java.net.URI;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -55,5 +57,14 @@ public class PessoaController {
         return ResponseEntity
                 .created(URI.create("/list/" + pessoa.documento().valor()))
                 .body(PessoaResponse.de(pessoa));
+    }
+
+    /**
+     * O parametro e o documento (identidade natural da pessoa). Construir o
+     * Value Object ja valida o formato: nenhum "if" extra e necessario aqui.
+     */
+    @GetMapping("/list/{document}")
+    public PessoaResponse obter(@PathVariable String document) {
+        return PessoaResponse.de(servico.obter(new Documento(document)));
     }
 }

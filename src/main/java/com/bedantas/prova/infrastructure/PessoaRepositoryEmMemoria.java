@@ -1,6 +1,7 @@
 package com.bedantas.prova.infrastructure;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
@@ -29,5 +30,10 @@ public class PessoaRepositoryEmMemoria implements PessoaRepository {
     @Override
     public boolean existe(Documento documento) {
         return dados.containsKey(documento);
+    }
+
+    @Override
+    public Optional<Pessoa> buscarPor(Documento documento) {
+        return Optional.ofNullable(dados.get(documento));
     }
 }

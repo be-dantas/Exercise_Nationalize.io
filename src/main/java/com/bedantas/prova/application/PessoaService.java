@@ -3,6 +3,7 @@ package com.bedantas.prova.application;
 import org.springframework.stereotype.Service;
 
 import com.bedantas.prova.domain.PessoaJaCadastradaException;
+import com.bedantas.prova.domain.PessoaNaoEncontradaException;
 import com.bedantas.prova.domain.Documento;
 import com.bedantas.prova.domain.Email;
 import com.bedantas.prova.domain.Nome;
@@ -30,5 +31,10 @@ public class PessoaService {
         var pessoa = new Pessoa(documento, nome, sobrenome, email);
         repositorio.salvar(pessoa);
         return pessoa;
+    }
+
+    public Pessoa obter(Documento documento) {
+        return repositorio.buscarPor(documento)
+                .orElseThrow(() -> new PessoaNaoEncontradaException(documento.valor()));
     }
 }
