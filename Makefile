@@ -4,7 +4,7 @@
 # Tira o banner e os avisos da JVM da saida dos testes; falhas continuam visiveis.
 SILENCIO = -Dspring.main.banner-mode=off -DargLine="-XX:+EnableDynamicAgentLoading -Xshare:off"
 
-.PHONY: run test build clean help
+.PHONY: run test build clean re help
 
 ## run   - sobe a aplicacao em http://localhost:8080
 run:
@@ -16,11 +16,16 @@ test:
 
 ## build - gera o jar em target/
 build:
-	@./mvnw -q clean package
+	@./mvnw -q clean package $(SILENCIO) && echo "jar gerado em target/"
 
-## clean - apaga os arquivos gerados pelo build
+## clean - apaga tudo que o build gerou (target/: .class e .jar)
+##         no Maven nao existe fclean: target/ guarda os dois, entao
+##         clean ja faz o que fclean faz em C
 clean:
 	@./mvnw -q clean
+
+## re    - clean + build
+re: clean build
 
 help:
 	@grep -E "^## " Makefile | sed "s/^## //"
