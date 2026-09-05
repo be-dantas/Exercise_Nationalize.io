@@ -16,7 +16,18 @@ Requires a **JDK 21+**. Maven is not needed — the wrapper downloads it.
 ./mvnw spring-boot:run
 ```
 
-Then open **http://localhost:8080**
+On start it prints:
+
+```
+  cadastro.  ->  http://localhost:8080
+
+  login de demonstracao: admin / admin123
+  encerrar: Ctrl+C
+```
+
+The framework log is set to `WARN`, so a healthy start is quiet and only
+warnings and failures show up — a failed start still prints Spring's full
+diagnostic.
 
 | What | Command |
 |---|---|
