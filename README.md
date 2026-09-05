@@ -164,6 +164,20 @@ Quando o serviço não tem palpite, o endpoint responde `200` com nacionalidade
 nula: a pessoa existe, só falta a previsão. Um `404` daria a entender,
 erradamente, que a pessoa não está cadastrada.
 
+**O plano gratuito da API permite 25 requisições por dia** (cabeçalho
+`x-rate-limit-limit`). Por isso o adapter guarda em cache o que já consultou:
+repetir a mesma consulta não gasta cota. E se o limite estourar mesmo assim, a
+resposta diz exatamente isso —
+
+```json
+{ "error": "EXTERNAL_SERVICE_UNAVAILABLE",
+  "message": "limite diario de requisicoes da api.nationalize.io atingido (25/dia no plano gratuito); tente novamente mais tarde" }
+```
+
+— em vez de um erro genérico que pareceria defeito da aplicação. O cache, o
+timeout e o tratamento do limite vivem todos dentro do adapter: nenhuma outra
+camada sabe que existem.
+
 ### O armazenamento é em memória
 
 O enunciado permite *"banco de dados, armazenamento em memória, etc."*. Um
@@ -253,9 +267,10 @@ implementações falsas, então tudo roda sem internet.
 
 - **Os dados não persistem** entre execuções. Está a uma classe adapter de um
   banco de verdade.
-- **Não há cache na chamada externa.** A `api.nationalize.io` limita o plano
-  gratuito em torno de 100 requisições por dia; um cache dentro do adapter seria
-  o próximo passo e não tocaria em nenhuma outra camada.
+- **O cache da chamada externa é simples e não expira.** Resolve o limite de 25
+  requisições por dia, mas num sistema real teria tempo de vida e limite de
+  tamanho. Como está isolado no adapter, evoluir não toca em nenhuma outra
+  camada.
 - **Um único usuário fixo.** O enunciado não pede gestão de usuários. Usuários
   reais viveriam no repositório, atrás da mesma porta.
 - **Sem conteinerização.** Rodar exige um comando e um JDK; containerizar seria

@@ -3,11 +3,15 @@ package com.bedantas.personregistry.infrastructure;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
 import com.bedantas.personregistry.domain.Nacionalidade;
@@ -18,16 +22,25 @@ import com.bedantas.personregistry.domain.ServicoExternoIndisponivelException;
 /**
  * Adapter para api.nationalize.io.
  *
- * Duas responsabilidades que o dominio nao deve conhecer:
+ * Tres responsabilidades que o dominio nao deve conhecer:
  *  1. falar HTTP com timeout, traduzindo qualquer falha em excecao de dominio;
  *  2. converter o codigo ISO 3166-1 alpha-2 devolvido pela API no NOME do pais,
  *     que e o que o enunciado pede. O Java ja traz os dados (CLDR), entao isso
- *     nao custa nenhuma dependencia extra.
+ *     nao custa nenhuma dependencia extra;
+ *  3. guardar em cache o que ja foi consultado - o plano gratuito da API
+ *     permite apenas 25 requisicoes por dia (cabecalho x-rate-limit-limit).
+ *     Sem cache, repetir a mesma consulta gasta cota a toa.
+ *
+ * Tudo isso vive aqui: nenhuma outra camada sabe que existe cache, timeout
+ * ou limite de uso.
  */
 @Component
 public class NationalizeClient implements PrevisorDeNacionalidade {
 
     private final RestClient http;
+
+    /** Nome consultado -> previsao. Vazio significa "consultado, sem palpite". */
+    private final Map<String, Optional<Nacionalidade>> cache = new ConcurrentHashMap<>();
 
     public NationalizeClient(@Value("${nationalize.url}") String url) {
         var fabrica = new SimpleClientHttpRequestFactory();
@@ -38,12 +51,18 @@ public class NationalizeClient implements PrevisorDeNacionalidade {
 
     @Override
     public Optional<Nacionalidade> preverPara(Nome nome) {
+        return cache.computeIfAbsent(nome.valor().toLowerCase(), chave -> consultar(nome));
+    }
+
+    private Optional<Nacionalidade> consultar(Nome nome) {
         Resposta resposta;
         try {
             resposta = http.get()
                     .uri(uri -> uri.queryParam("name", nome.valor()).build())
                     .retrieve()
                     .body(Resposta.class);
+        } catch (HttpStatusCodeException e) {
+            throw new ServicoExternoIndisponivelException(mensagemPara(e), e);
         } catch (Exception e) {
             throw new ServicoExternoIndisponivelException(
                     "nao foi possivel consultar o servico de nacionalidade", e);
@@ -62,6 +81,19 @@ public class NationalizeClient implements PrevisorDeNacionalidade {
                 maisProvavel.country_id(),
                 nomeDoPais(maisProvavel.country_id()),
                 maisProvavel.probability()));
+    }
+
+    /**
+     * Cota estourada e a falha mais provavel de aparecer na pratica, entao ela
+     * ganha uma mensagem propria: sem isso, quem estiver avaliando ve um erro
+     * generico e conclui que a aplicacao esta quebrada.
+     */
+    private String mensagemPara(HttpStatusCodeException e) {
+        if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+            return "limite diario de requisicoes da api.nationalize.io atingido "
+                    + "(25/dia no plano gratuito); tente novamente mais tarde";
+        }
+        return "o servico de nacionalidade respondeu " + e.getStatusCode().value();
     }
 
     /** "US" -> "United States". Codigo desconhecido devolve ele mesmo. */
