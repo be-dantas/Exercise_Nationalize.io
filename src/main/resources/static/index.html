@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cadastro.</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230F0F0F'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --tinta:#0F0F0F;
+    --papel:#FAFAF8;
+    --linha:#DEDEDA;
+    --suave:#6B6B68;
+  }
+  *,*::before,*::after{ box-sizing:border-box }
+
+  body{
+    margin:0;
+    background:var(--papel);
+    color:var(--tinta);
+    font-family:Inter,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:14px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .folha{ max-width:1040px; margin:0 auto; padding:72px 32px 120px }
+
+  /* ---------- cabecalho ---------- */
+  .topo{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:40px;
+    align-items:start;
+    padding-bottom:28px;
+    border-bottom:2px solid var(--tinta);
+  }
+  h1{
+    margin:0;
+    font-size:clamp(3.25rem,10vw,6rem);
+    font-weight:900;
+    letter-spacing:-.055em;
+    line-height:.85;
+  }
+  .subtitulo{
+    margin-top:14px;
+    font-size:.6875rem;
+    font-weight:800;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+  }
+  .meta{ font-size:.75rem; text-align:right; min-width:210px }
+  .meta div{ display:flex; justify-content:space-between; gap:20px; padding:3px 0 }
+  .meta dt{ font-weight:800; letter-spacing:.1em; text-transform:uppercase; font-size:.625rem }
+  .meta dd{ margin:0; color:var(--suave) }
+
+  /* ---------- secoes ---------- */
+  section{ margin-top:56px }
+  .cabecalho-secao{
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--tinta);
+    margin-bottom:24px;
+  }
+  .numero{ font-size:.6875rem; font-weight:900; letter-spacing:.06em }
+  h2{ margin:0; font-size:1.0625rem; font-weight:800; letter-spacing:-.02em }
+  .dica{ margin-left:auto; font-size:.6875rem; color:var(--suave) }
+
+  /* ---------- formulario ---------- */
+  .grade{ display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:26px }
+  label{
+    display:block;
+    font-size:.625rem;
+    font-weight:800;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    margin-bottom:7px;
+  }
+  input{
+    width:100%;
+    padding:7px 0;
+    border:0;
+    border-bottom:1px solid var(--linha);
+    background:transparent;
+    font:inherit;
+    color:inherit;
+    border-radius:0;
+  }
+  input:focus{ outline:0; border-bottom-color:var(--tinta) }
+  input::placeholder{ color:#B8B8B4 }
+
+  .acoes{ margin-top:32px; display:flex; gap:12px; flex-wrap:wrap; align-items:center }
+
+  button{
+    font:inherit;
+    font-size:.6875rem;
+    font-weight:800;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    padding:13px 26px;
+    border:1px solid var(--tinta);
+    border-radius:0;
+    background:var(--tinta);
+    color:var(--papel);
+    cursor:pointer;
+  }
+  button:hover{ background:#2C2C2C }
+  button.vazado{ background:transparent; color:var(--tinta) }
+  button.vazado:hover{ background:var(--tinta); color:var(--papel) }
+  button.mini{ padding:6px 13px; font-size:.5625rem; letter-spacing:.1em }
+
+  /* ---------- avisos ---------- */
+  .aviso{
+    margin-top:22px;
+    padding:13px 16px;
+    border-left:3px solid var(--tinta);
+    background:#F0F0EC;
+    font-size:.8125rem;
+  }
+  .aviso[hidden]{ display:none }
+  .aviso code{ font-size:.75rem; color:var(--suave) }
+
+  /* ---------- tabela ---------- */
+  .rolagem{ overflow-x:auto }
+  table{ width:100%; border-collapse:collapse; font-size:.8125rem; min-width:660px }
+  th{
+    text-align:left;
+    font-size:.625rem;
+    font-weight:800;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    padding:0 14px 9px 0;
+    border-bottom:1px solid var(--tinta);
+  }
+  td{ padding:14px 14px 14px 0; border-bottom:1px solid var(--linha); vertical-align:middle }
+  tr:last-child td{ border-bottom:1px solid var(--tinta) }
+  td.doc{ font-variant-numeric:tabular-nums; font-weight:600 }
+  td.fim{ text-align:right; padding-right:0; white-space:nowrap }
+  .vazio{ padding:34px 0; color:var(--suave); font-size:.8125rem }
+
+  /* ---------- bloco invertido ---------- */
+  .invertido{
+    margin-top:26px;
+    background:var(--tinta);
+    color:var(--papel);
+    padding:38px 34px;
+  }
+  .invertido[hidden]{ display:none }
+  .invertido .rotulo{
+    font-size:.625rem;
+    font-weight:800;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    opacity:.55;
+  }
+  .pais{
+    font-size:clamp(2.25rem,6.5vw,3.75rem);
+    font-weight:900;
+    letter-spacing:-.045em;
+    line-height:1;
+    margin:10px 0 20px;
+  }
+  .barra{ height:2px; background:rgba(250,250,248,.28); margin-bottom:9px }
+  .barra span{ display:block; height:100%; background:var(--papel) }
+  .legenda{ font-size:.6875rem; opacity:.65 }
+
+  /* ---------- rodape ---------- */
+  footer{
+    margin-top:88px;
+    padding-top:22px;
+    border-top:2px solid var(--tinta);
+    display:flex;
+    justify-content:space-between;
+    gap:26px;
+    flex-wrap:wrap;
+    font-size:.6875rem;
+    color:var(--suave);
+  }
+  footer strong{ color:var(--tinta); font-weight:800; letter-spacing:.1em; text-transform:uppercase }
+</style>
+</head>
+<body>
+<div class="folha">
+
+  <header class="topo">
+    <div>
+      <h1>cadastro.</h1>
+      <div class="subtitulo">Pessoas &amp; Nacionalidade</div>
+    </div>
+    <dl class="meta">
+      <div><dt>API</dt><dd>localhost:8080</dd></div>
+      <div><dt>Fonte</dt><dd>nationalize.io</dd></div>
+      <div><dt>Registros</dt><dd id="contador">—</dd></div>
+    </dl>
+  </header>
+
+  <section>
+    <div class="cabecalho-secao">
+      <span class="numero">01.</span>
+      <h2>Nova pessoa</h2>
+      <span class="dica">POST /registrarName</span>
+    </div>
+
+    <form id="form-cadastro" novalidate>
+      <div class="grade">
+        <div>
+          <label for="documento">Documento</label>
+          <input id="documento" name="document" placeholder="123.456.789-00" autocomplete="off">
+        </div>
+        <div>
+          <label for="nome">Nome</label>
+          <input id="nome" name="name" placeholder="Beatriz" autocomplete="off">
+        </div>
+        <div>
+          <label for="sobrenome">Sobrenome</label>
+          <input id="sobrenome" name="lastName" placeholder="Dantas" autocomplete="off">
+        </div>
+        <div>
+          <label for="email">E-mail</label>
+          <input id="email" name="email" placeholder="be@exemplo.com" autocomplete="off">
+        </div>
+      </div>
+      <div class="acoes">
+        <button type="submit">Cadastrar</button>
+        <button type="reset" class="vazado">Limpar</button>
+      </div>
+    </form>
+
+    <p class="aviso" id="aviso-cadastro" hidden></p>
+  </section>
+
+  <section>
+    <div class="cabecalho-secao">
+      <span class="numero">02.</span>
+      <h2>Pessoas cadastradas</h2>
+      <span class="dica">GET /list</span>
+    </div>
+
+    <div class="rolagem">
+      <table>
+        <thead>
+          <tr>
+            <th>Documento</th><th>Nome</th><th>Sobrenome</th><th>E-mail</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="corpo-tabela"></tbody>
+      </table>
+    </div>
+    <p class="vazio" id="tabela-vazia" hidden>Nenhuma pessoa cadastrada ainda.</p>
+
+    <div class="acoes">
+      <button type="button" class="vazado" id="btn-atualizar">Atualizar lista</button>
+    </div>
+    <p class="aviso" id="aviso-lista" hidden></p>
+  </section>
+
+  <section>
+    <div class="cabecalho-secao">
+      <span class="numero">03.</span>
+      <h2>Previsão de nacionalidade</h2>
+      <span class="dica">GET /findNacionalityByPerson/{documento}</span>
+    </div>
+
+    <form id="form-nacionalidade" novalidate>
+      <div class="grade">
+        <div>
+          <label for="doc-nacionalidade">Documento da pessoa</label>
+          <input id="doc-nacionalidade" placeholder="123.456.789-00" autocomplete="off">
+        </div>
+      </div>
+      <div class="acoes">
+        <button type="submit">Consultar</button>
+      </div>
+    </form>
+
+    <div class="invertido" id="painel-nacionalidade" hidden>
+      <div class="rotulo" id="rotulo-pessoa"></div>
+      <div class="pais" id="nome-pais"></div>
+      <div class="barra"><span id="barra-prob"></span></div>
+      <div class="legenda" id="legenda-prob"></div>
+    </div>
+    <p class="aviso" id="aviso-nacionalidade" hidden></p>
+  </section>
+
+  <footer>
+    <div><strong>Teste técnico</strong> — Java 21 · Spring Boot · armazenamento em memória</div>
+    <div><strong>be-dantas</strong></div>
+  </footer>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+
+  /** Toda chamada passa por aqui: um lugar so para tratar erro da API. */
+  async function api(caminho, opcoes = {}) {
+    const resposta = await fetch(caminho, {
+      headers: { "Content-Type": "application/json" },
+      ...opcoes,
+    });
+    if (resposta.status === 204) return null;
+
+    const texto = await resposta.text();
+    const corpo = texto ? JSON.parse(texto) : null;
+
+    if (!resposta.ok) {
+      const erro = new Error((corpo && corpo.message) || "erro inesperado");
+      erro.codigo = (corpo && corpo.error) || String(resposta.status);
+      erro.status = resposta.status;
+      throw erro;
+    }
+    return corpo;
+  }
+
+  function mostrar(elemento, mensagem, codigo) {
+    elemento.innerHTML = codigo
+      ? `${mensagem} <code>${codigo}</code>`
+      : mensagem;
+    elemento.hidden = false;
+  }
+  const esconder = (elemento) => { elemento.hidden = true; };
+
+  // ---------- 02. listagem ----------
+  async function carregarLista() {
+    const aviso = $("aviso-lista");
+    esconder(aviso);
+    try {
+      const pessoas = await api("/list");
+      const corpo = $("corpo-tabela");
+      corpo.replaceChildren();
+
+      for (const p of pessoas) {
+        const linha = document.createElement("tr");
+
+        const celula = (texto, classe) => {
+          const td = document.createElement("td");
+          td.textContent = texto;
+          if (classe) td.className = classe;
+          return td;
+        };
+
+        linha.append(
+          celula(p.document, "doc"),
+          celula(p.name),
+          celula(p.lastName),
+          celula(p.email),
+        );
+
+        const acoes = document.createElement("td");
+        acoes.className = "fim";
+
+        const btnNacionalidade = document.createElement("button");
+        btnNacionalidade.type = "button";
+        btnNacionalidade.className = "vazado mini";
+        btnNacionalidade.textContent = "Nacionalidade";
+        btnNacionalidade.addEventListener("click", () => {
+          $("doc-nacionalidade").value = p.document;
+          consultarNacionalidade(p.document);
+          $("painel-nacionalidade").scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+
+        const btnExcluir = document.createElement("button");
+        btnExcluir.type = "button";
+        btnExcluir.className = "vazado mini";
+        btnExcluir.textContent = "Excluir";
+        btnExcluir.style.marginLeft = "8px";
+        btnExcluir.addEventListener("click", () => excluir(p.document));
+
+        acoes.append(btnNacionalidade, btnExcluir);
+        linha.append(acoes);
+        corpo.append(linha);
+      }
+
+      $("tabela-vazia").hidden = pessoas.length > 0;
+      $("contador").textContent = pessoas.length;
+    } catch (e) {
+      mostrar(aviso, "Não foi possível carregar a lista: " + e.message, e.codigo);
+    }
+  }
+
+  // ---------- 01. cadastro ----------
+  $("form-cadastro").addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    const aviso = $("aviso-cadastro");
+    esconder(aviso);
+
+    const dados = {
+      document: $("documento").value,
+      name: $("nome").value,
+      lastName: $("sobrenome").value,
+      email: $("email").value,
+    };
+
+    try {
+      const criada = await api("/registrarName", {
+        method: "POST",
+        body: JSON.stringify(dados),
+      });
+      mostrar(aviso, `Cadastrada: <strong>${criada.name} ${criada.lastName}</strong> — documento ${criada.document}`);
+      evento.target.reset();
+      $("documento").focus();
+      await carregarLista();
+    } catch (e) {
+      mostrar(aviso, e.message, e.codigo);
+    }
+  });
+
+  // ---------- exclusao ----------
+  async function excluir(documento) {
+    const aviso = $("aviso-lista");
+    esconder(aviso);
+    try {
+      await api("/list/" + encodeURIComponent(documento), { method: "DELETE" });
+      await carregarLista();
+    } catch (e) {
+      mostrar(aviso, "Não foi possível excluir: " + e.message, e.codigo);
+    }
+  }
+
+  // ---------- 03. nacionalidade ----------
+  async function consultarNacionalidade(documento) {
+    const aviso = $("aviso-nacionalidade");
+    const painel = $("painel-nacionalidade");
+    esconder(aviso);
+    esconder(painel);
+
+    try {
+      const r = await api("/findNacionalityByPerson/" + encodeURIComponent(documento));
+      $("rotulo-pessoa").textContent = r.name;
+
+      if (r.nationality === null) {
+        $("nome-pais").textContent = "Sem palpite";
+        $("barra-prob").style.width = "0%";
+        $("legenda-prob").textContent = "O serviço externo não tem previsão para este nome.";
+      } else {
+        const porcento = Math.round(r.probability * 1000) / 10;
+        $("nome-pais").textContent = r.nationality;
+        $("barra-prob").style.width = porcento + "%";
+        $("legenda-prob").textContent = `Probabilidade ${porcento}% — previsão estatística de api.nationalize.io`;
+      }
+      painel.hidden = false;
+    } catch (e) {
+      mostrar(aviso, e.message, e.codigo);
+    }
+  }
+
+  $("form-nacionalidade").addEventListener("submit", (evento) => {
+    evento.preventDefault();
+    consultarNacionalidade($("doc-nacionalidade").value);
+  });
+
+  $("btn-atualizar").addEventListener("click", carregarLista);
+
+  carregarLista();
+})();
+</script>
+</body>
+</html>
