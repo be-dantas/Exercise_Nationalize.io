@@ -36,7 +36,10 @@ diagnostic.
 | Build a jar | `./mvnw clean package` |
 | Run the jar on its own | `java -jar target/*.jar` |
 
-Add `-q` to any of them for quiet output.
+Builds are quiet by default — `.mvn/maven.config` carries `-q`, so **no output
+means success**. Failures still print in full: a failing test shows the
+assertion, a compile error shows the file and line, and a failed start shows
+Spring's diagnostic. Delete that file for the full Maven build log.
 
 **Demo credentials:** `admin` / `admin123`
 Only the BCrypt hash is stored, in `application.properties`.
