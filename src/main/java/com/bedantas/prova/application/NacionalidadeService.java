@@ -26,7 +26,7 @@ public class NacionalidadeService {
 
     public Resultado descobrir(Documento documento) {
         Pessoa pessoa = pessoas.obter(documento);
-        Optional<Nacionalidade> previsao = previsor.preverPara(pessoa.nome());
+        Optional<Nacionalidade> previsao = previsor.preverPara(pessoa.nomeParaPrevisao());
         return new Resultado(pessoa, previsao);
     }
 

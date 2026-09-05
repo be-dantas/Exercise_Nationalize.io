@@ -22,6 +22,9 @@ public class NacionalidadeController {
      * Quando o servico externo nao tem palpite para o nome, respondemos 200 com
      * nationality nula: a pessoa existe, so nao ha previsao. Um 404 aqui daria a
      * entender, erradamente, que a pessoa nao esta cadastrada.
+     *
+     * O campo "name" devolve o nome exatamente como foi enviado ao servico
+     * externo (nome + sobrenome), para a resposta ser autoexplicativa.
      */
     public record NacionalidadeResponse(String name, String nationality, Double probability) {
     }
@@ -31,8 +34,8 @@ public class NacionalidadeController {
         var resultado = servico.descobrir(new Documento(document));
         return resultado.previsao()
                 .map(n -> new NacionalidadeResponse(
-                        resultado.pessoa().nome().valor(), n.nomeDoPais(), n.probabilidade()))
+                        resultado.pessoa().nomeParaPrevisao().valor(), n.nomeDoPais(), n.probabilidade()))
                 .orElseGet(() -> new NacionalidadeResponse(
-                        resultado.pessoa().nome().valor(), null, null));
+                        resultado.pessoa().nomeParaPrevisao().valor(), null, null));
     }
 }

@@ -49,6 +49,20 @@ class NacionalidadeServiceTest {
     }
 
     @Test
+    @DisplayName("consulta usa nome + sobrenome, nao so o primeiro nome")
+    void consultaUsaNomeCompleto() {
+        var enviado = new java.util.concurrent.atomic.AtomicReference<String>();
+        PrevisorDeNacionalidade previsor = nome -> {
+            enviado.set(nome.valor());
+            return Optional.of(new Nacionalidade("US", "United States", 0.35));
+        };
+
+        new NacionalidadeService(pessoas, previsor).descobrir(new Documento("12345678900"));
+
+        assertEquals("Nathaniel Silva", enviado.get());
+    }
+
+    @Test
     @DisplayName("devolve o NOME do pais, nunca o codigo ISO")
     void devolveNomeDoPais() {
         PrevisorDeNacionalidade previsor =
