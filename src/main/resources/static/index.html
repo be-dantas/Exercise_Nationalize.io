@@ -57,6 +57,31 @@
   .meta dt{ font-weight:800; letter-spacing:.1em; text-transform:uppercase; font-size:.625rem }
   .meta dd{ margin:0; color:var(--suave) }
 
+  /* ---------- sessao ---------- */
+  .sessao{
+    display:flex; align-items:flex-end; gap:22px; flex-wrap:wrap;
+    padding:20px 0; border-bottom:1px solid var(--linha);
+  }
+  .sessao .campo{ min-width:150px }
+  .sessao .cadeado{
+    margin-left:auto; font-size:.625rem; font-weight:800;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--suave);
+  }
+  .sessao-ativa{
+    display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+    margin-top:20px; padding:16px 20px; background:var(--tinta); color:var(--papel);
+  }
+  .sessao[hidden], .sessao-ativa[hidden]{ display:none }
+  .sessao-ativa .rotulo{
+    font-size:.625rem; font-weight:800; letter-spacing:.16em;
+    text-transform:uppercase; opacity:.55;
+  }
+  .sessao-ativa .quem{ font-weight:800; letter-spacing:-.01em }
+  .sessao-ativa button{
+    margin-left:auto; background:transparent; color:var(--papel); border-color:var(--papel);
+  }
+  .sessao-ativa button:hover{ background:var(--papel); color:var(--tinta) }
+
   /* ---------- secoes ---------- */
   section{ margin-top:56px }
   .cabecalho-secao{
@@ -199,6 +224,28 @@
     </dl>
   </header>
 
+  <form class="sessao" id="form-login">
+    <div class="campo">
+      <label for="usuario">Usuário</label>
+      <input id="usuario" value="admin" autocomplete="username">
+    </div>
+    <div class="campo">
+      <label for="senha">Senha</label>
+      <input id="senha" type="password" placeholder="veja o README" autocomplete="current-password">
+    </div>
+    <button type="submit">Entrar</button>
+    <span class="cadeado">Cadastrar e excluir exigem sessão</span>
+  </form>
+
+  <div class="sessao-ativa" id="sessao-ativa" hidden>
+    <div>
+      <div class="rotulo">Sessão ativa</div>
+      <div class="quem" id="usuario-ativo"></div>
+    </div>
+    <button type="button" id="btn-sair">Sair</button>
+  </div>
+  <p class="aviso" id="aviso-login" hidden></p>
+
   <section>
     <div class="cabecalho-secao">
       <span class="numero">01.</span>
@@ -299,12 +346,22 @@
 
   const $ = (id) => document.getElementById(id);
 
+  /**
+   * O token vive so em memoria: nao vai para localStorage nem para o codigo da
+   * pagina. Recarregar exige entrar de novo, que e o comportamento correto.
+   */
+  let token = null;
+
   /** Toda chamada passa por aqui: um lugar so para tratar erro da API. */
   async function api(caminho, opcoes = {}) {
-    const resposta = await fetch(caminho, {
-      headers: { "Content-Type": "application/json" },
-      ...opcoes,
-    });
+    const cabecalhos = { "Content-Type": "application/json" };
+    if (token) cabecalhos["Authorization"] = "Bearer " + token;
+
+    const resposta = await fetch(caminho, { headers: cabecalhos, ...opcoes });
+
+    if (resposta.status === 401) {
+      encerrarSessao();
+    }
     if (resposta.status === 204) return null;
 
     const texto = await resposta.text();
@@ -326,6 +383,40 @@
     elemento.hidden = false;
   }
   const esconder = (elemento) => { elemento.hidden = true; };
+
+  // ---------- sessao ----------
+  function atualizarSessao(usuario) {
+    const autenticado = token !== null;
+    $("form-login").hidden = autenticado;
+    $("sessao-ativa").hidden = !autenticado;
+    if (autenticado) $("usuario-ativo").textContent = usuario;
+  }
+
+  function encerrarSessao() {
+    token = null;
+    atualizarSessao(null);
+  }
+
+  $("form-login").addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    const aviso = $("aviso-login");
+    esconder(aviso);
+    const usuario = $("usuario").value;
+
+    try {
+      const sessao = await api("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ username: usuario, password: $("senha").value }),
+      });
+      token = sessao.token;
+      $("senha").value = "";
+      atualizarSessao(usuario);
+    } catch (e) {
+      mostrar(aviso, e.message, e.codigo);
+    }
+  });
+
+  $("btn-sair").addEventListener("click", encerrarSessao);
 
   // ---------- 02. listagem ----------
   async function carregarLista() {
@@ -458,6 +549,7 @@
 
   $("btn-atualizar").addEventListener("click", carregarLista);
 
+  atualizarSessao(null);
   carregarLista();
 })();
 </script>

@@ -6,6 +6,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.bedantas.personregistry.domain.CredencialInvalidaException;
 import com.bedantas.personregistry.domain.DadoInvalidoException;
 import com.bedantas.personregistry.domain.PessoaJaCadastradaException;
 import com.bedantas.personregistry.domain.PessoaNaoEncontradaException;
@@ -43,6 +44,12 @@ public class TratadorGlobalDeErros {
     public ResponseEntity<RespostaDeErro> servicoExterno(ServicoExternoIndisponivelException e) {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(new RespostaDeErro("EXTERNAL_SERVICE_UNAVAILABLE", e.getMessage()));
+    }
+
+    @ExceptionHandler(CredencialInvalidaException.class)
+    public ResponseEntity<RespostaDeErro> credencialInvalida(CredencialInvalidaException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new RespostaDeErro("UNAUTHORIZED", e.getMessage()));
     }
 
     /** Corpo ausente ou JSON malformado. */
