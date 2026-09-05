@@ -8,7 +8,7 @@ package com.bedantas.personregistry.domain;
  *
  * Nao ha validacao aqui: cada campo ja e um Value Object que so existe valido.
  */
-public record Pessoa(Documento documento, Nome nome, Nome sobrenome, Email email) {
+public record Pessoa(Documento documento, Nome nome, Sobrenome sobrenome, Email email) {
 
     /**
      * Nome enviado ao servico de previsao de nacionalidade.

@@ -17,6 +17,7 @@ import com.bedantas.personregistry.domain.Email;
 import com.bedantas.personregistry.domain.Nacionalidade;
 import com.bedantas.personregistry.domain.Nome;
 import com.bedantas.personregistry.domain.Pessoa;
+import com.bedantas.personregistry.domain.Sobrenome;
 import com.bedantas.personregistry.domain.ErroDeDominio;
 import com.bedantas.personregistry.domain.PessoaRepository;
 import com.bedantas.personregistry.domain.PrevisorDeNacionalidade;
@@ -46,7 +47,7 @@ class NacionalidadeServiceTest {
         repositorio = new RepositorioFalso();
         pessoas = new PessoaService(repositorio);
         pessoas.registrar(new Documento("10433218100"), new Nome("Nathaniel"),
-                          new Nome("Silva"), new Email("nat@exemplo.com"));
+                          new Sobrenome("Silva"), new Email("nat@exemplo.com"));
     }
 
     @Test

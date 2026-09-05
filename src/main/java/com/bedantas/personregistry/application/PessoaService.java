@@ -8,6 +8,7 @@ import com.bedantas.personregistry.domain.ErroDeDominio;
 import com.bedantas.personregistry.domain.Documento;
 import com.bedantas.personregistry.domain.Email;
 import com.bedantas.personregistry.domain.Nome;
+import com.bedantas.personregistry.domain.Sobrenome;
 import com.bedantas.personregistry.domain.Pessoa;
 import com.bedantas.personregistry.domain.PessoaRepository;
 
@@ -25,7 +26,7 @@ public class PessoaService {
         this.repositorio = repositorio;
     }
 
-    public Pessoa registrar(Documento documento, Nome nome, Nome sobrenome, Email email) {
+    public Pessoa registrar(Documento documento, Nome nome, Sobrenome sobrenome, Email email) {
         if (repositorio.existe(documento)) {
             throw new ErroDeDominio.PessoaJaCadastrada(documento.valor());
         }

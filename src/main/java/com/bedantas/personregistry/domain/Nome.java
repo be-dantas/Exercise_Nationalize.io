@@ -2,22 +2,35 @@ package com.bedantas.personregistry.domain;
 
 import java.util.regex.Pattern;
 
-
-/** Nome ou sobrenome. Value Object: imutavel e sempre valido. */
+/** Primeiro nome da pessoa. Value Object: imutavel e sempre valido. */
 public record Nome(String valor) {
 
     private static final Pattern LETRAS = Pattern.compile("^[\\p{L} '-]+$");
+    private static final int MINIMO = 2;
+    private static final int MAXIMO = 80;
 
     public Nome {
+        valor = validar(valor, "nome");
+    }
+
+    /**
+     * Regras compartilhadas com Sobrenome: sao identicas, muda apenas o nome do
+     * campo citado na mensagem. Sem isso, um erro no sobrenome respondia
+     * "nome contem caracteres invalidos" e o cliente nao sabia o que corrigir.
+     */
+    static String validar(String valor, String campo) {
         if (valor == null || valor.isBlank()) {
-            throw new ErroDeDominio.DadoInvalido("nome e obrigatorio");
+            throw new ErroDeDominio.DadoInvalido(campo + " e obrigatorio");
         }
         valor = valor.trim();
-        if (valor.length() < 2 || valor.length() > 80) {
-            throw new ErroDeDominio.DadoInvalido("nome deve ter de 2 a 80 caracteres");
+        if (valor.length() < MINIMO || valor.length() > MAXIMO) {
+            throw new ErroDeDominio.DadoInvalido(
+                    campo + " deve ter de " + MINIMO + " a " + MAXIMO + " caracteres");
         }
         if (!LETRAS.matcher(valor).matches()) {
-            throw new ErroDeDominio.DadoInvalido("nome contem caracteres invalidos: " + valor);
+            throw new ErroDeDominio.DadoInvalido(
+                    campo + " contem caracteres invalidos: " + valor);
         }
+        return valor;
     }
 }

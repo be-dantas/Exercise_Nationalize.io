@@ -15,6 +15,7 @@ import com.bedantas.personregistry.application.PessoaService;
 import com.bedantas.personregistry.domain.Documento;
 import com.bedantas.personregistry.domain.Email;
 import com.bedantas.personregistry.domain.Nome;
+import com.bedantas.personregistry.domain.Sobrenome;
 import com.bedantas.personregistry.domain.Pessoa;
 
 @RestController
@@ -53,7 +54,7 @@ public class PessoaController {
         var pessoa = servico.registrar(
                 new Documento(requisicao.document()),
                 new Nome(requisicao.name()),
-                new Nome(requisicao.lastName()),
+                new Sobrenome(requisicao.lastName()),
                 new Email(requisicao.email()));
 
         return ResponseEntity

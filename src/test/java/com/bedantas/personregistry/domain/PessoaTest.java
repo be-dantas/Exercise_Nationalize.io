@@ -10,7 +10,7 @@ class PessoaTest {
 
     private static Pessoa comNome(String nome, String sobrenome) {
         return new Pessoa(new Documento("529.982.247-25"),
-                new Nome(nome), new Nome(sobrenome), new Email("be@exemplo.com"));
+                new Nome(nome), new Sobrenome(sobrenome), new Email("be@exemplo.com"));
     }
 
     @Test
