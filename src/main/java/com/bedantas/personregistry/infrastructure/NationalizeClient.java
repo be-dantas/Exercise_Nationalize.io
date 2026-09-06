@@ -14,9 +14,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
-import com.bedantas.personregistry.domain.Nacionalidade;
-import com.bedantas.personregistry.domain.PrevisorDeNacionalidade;
-import com.bedantas.personregistry.domain.ErroDeDominio;
+import com.bedantas.personregistry.domain.model.Nacionalidade;
+import com.bedantas.personregistry.domain.port.PrevisorDeNacionalidade;
+import com.bedantas.personregistry.domain.error.ErroDeDominio;
 
 /**
  * Adapter para api.nationalize.io.

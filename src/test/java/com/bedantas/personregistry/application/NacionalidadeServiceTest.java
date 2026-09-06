@@ -12,15 +12,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.bedantas.personregistry.domain.Documento;
-import com.bedantas.personregistry.domain.Email;
-import com.bedantas.personregistry.domain.Nacionalidade;
-import com.bedantas.personregistry.domain.Nome;
-import com.bedantas.personregistry.domain.Pessoa;
-import com.bedantas.personregistry.domain.Sobrenome;
-import com.bedantas.personregistry.domain.ErroDeDominio;
-import com.bedantas.personregistry.domain.PessoaRepository;
-import com.bedantas.personregistry.domain.PrevisorDeNacionalidade;
+import com.bedantas.personregistry.domain.model.Documento;
+import com.bedantas.personregistry.domain.model.Email;
+import com.bedantas.personregistry.domain.model.Nacionalidade;
+import com.bedantas.personregistry.domain.model.Nome;
+import com.bedantas.personregistry.domain.model.Pessoa;
+import com.bedantas.personregistry.domain.model.Sobrenome;
+import com.bedantas.personregistry.domain.error.ErroDeDominio;
+import com.bedantas.personregistry.domain.port.PessoaRepository;
+import com.bedantas.personregistry.domain.port.PrevisorDeNacionalidade;
 
 /**
  * Roda sem rede e sem subir o Spring. So e possivel porque o servico externo

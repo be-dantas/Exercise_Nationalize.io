@@ -4,10 +4,10 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import com.bedantas.personregistry.domain.Documento;
-import com.bedantas.personregistry.domain.Nacionalidade;
-import com.bedantas.personregistry.domain.Pessoa;
-import com.bedantas.personregistry.domain.PrevisorDeNacionalidade;
+import com.bedantas.personregistry.domain.model.Documento;
+import com.bedantas.personregistry.domain.model.Nacionalidade;
+import com.bedantas.personregistry.domain.model.Pessoa;
+import com.bedantas.personregistry.domain.port.PrevisorDeNacionalidade;
 
 /**
  * Descobre a nacionalidade provavel de uma pessoa ja cadastrada.

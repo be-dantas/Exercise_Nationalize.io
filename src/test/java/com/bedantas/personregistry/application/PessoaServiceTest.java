@@ -13,11 +13,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.bedantas.personregistry.domain.Documento;
-import com.bedantas.personregistry.domain.Email;
-import com.bedantas.personregistry.domain.ErroDeDominio;
-import com.bedantas.personregistry.domain.Nome;
-import com.bedantas.personregistry.domain.Sobrenome;
+import com.bedantas.personregistry.domain.model.Documento;
+import com.bedantas.personregistry.domain.model.Email;
+import com.bedantas.personregistry.domain.error.ErroDeDominio;
+import com.bedantas.personregistry.domain.model.Nome;
+import com.bedantas.personregistry.domain.model.Sobrenome;
 import com.bedantas.personregistry.infrastructure.PessoaRepositoryEmMemoria;
 
 class PessoaServiceTest {

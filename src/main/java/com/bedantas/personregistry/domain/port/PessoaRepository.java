@@ -1,4 +1,7 @@
-package com.bedantas.personregistry.domain;
+package com.bedantas.personregistry.domain.port;
+
+import com.bedantas.personregistry.domain.model.Documento;
+import com.bedantas.personregistry.domain.model.Pessoa;
 
 import java.util.List;
 import java.util.Optional;

@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bedantas.personregistry.application.NacionalidadeService;
-import com.bedantas.personregistry.domain.Documento;
+import com.bedantas.personregistry.domain.model.Documento;
 
 @RestController
 public class NacionalidadeController {

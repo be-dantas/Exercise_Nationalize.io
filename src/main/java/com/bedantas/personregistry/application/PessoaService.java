@@ -4,13 +4,13 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.bedantas.personregistry.domain.ErroDeDominio;
-import com.bedantas.personregistry.domain.Documento;
-import com.bedantas.personregistry.domain.Email;
-import com.bedantas.personregistry.domain.Nome;
-import com.bedantas.personregistry.domain.Sobrenome;
-import com.bedantas.personregistry.domain.Pessoa;
-import com.bedantas.personregistry.domain.PessoaRepository;
+import com.bedantas.personregistry.domain.error.ErroDeDominio;
+import com.bedantas.personregistry.domain.model.Documento;
+import com.bedantas.personregistry.domain.model.Email;
+import com.bedantas.personregistry.domain.model.Nome;
+import com.bedantas.personregistry.domain.model.Sobrenome;
+import com.bedantas.personregistry.domain.model.Pessoa;
+import com.bedantas.personregistry.domain.port.PessoaRepository;
 
 /**
  * Casos de uso de pessoa. Recebe Value Objects ja validados: a conversao de

@@ -234,11 +234,21 @@ Detalhes que valem registro:
 ### Arquitetura: Clean Architecture com parte do DDD tático
 
 ```
-domain/          entidades, value objects, portas, erros de domínio  — Java puro
-application/     casos de uso                                        — Java puro
+domain/
+  model/         entidades e value objects        — Java puro
+  port/          contratos com o mundo externo    — Java puro
+  error/         falhas de negócio                — Java puro
+application/     casos de uso                     — Java puro
 infrastructure/  repositório em memória, cliente HTTP, autenticação
 presentation/    controllers, DTOs, tratamento de erro, página estática
 ```
+
+As portas ficam em `domain/port` e não em `application`: elas usam apenas tipos
+de domínio e fazem parte da linguagem do negócio — é a leitura do DDD e da
+arquitetura hexagonal. A Clean Architecture na formulação original as coloca na
+camada de casos de uso; as duas respeitam a regra da dependência, muda apenas
+onde o arquivo é arquivado. O `domain/` compila isoladamente, sem as demais
+camadas.
 
 As dependências apontam para dentro: `domain` e `application` não importam
 framework nenhum, e é por isso que os casos de uso são testados sem subir o

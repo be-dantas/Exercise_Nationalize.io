@@ -1,4 +1,4 @@
-package com.bedantas.personregistry.domain;
+package com.bedantas.personregistry.domain.model;
 
 /**
  * Entity cuja identidade e o documento.

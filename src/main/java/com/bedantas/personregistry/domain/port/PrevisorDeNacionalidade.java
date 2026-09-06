@@ -1,4 +1,6 @@
-package com.bedantas.personregistry.domain;
+package com.bedantas.personregistry.domain.port;
+
+import com.bedantas.personregistry.domain.model.Nacionalidade;
 
 import java.util.Optional;
 

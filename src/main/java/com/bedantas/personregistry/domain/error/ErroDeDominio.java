@@ -1,4 +1,6 @@
-package com.bedantas.personregistry.domain;
+package com.bedantas.personregistry.domain.error;
+
+import com.bedantas.personregistry.domain.model.Documento;
 
 /**
  * Todas as falhas de negocio do sistema, num lugar so.

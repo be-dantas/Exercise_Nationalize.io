@@ -6,7 +6,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.bedantas.personregistry.domain.ErroDeDominio;
+import com.bedantas.personregistry.domain.error.ErroDeDominio;
 
 /**
  * Unico lugar que traduz excecao de dominio em status HTTP.

@@ -1,4 +1,4 @@
-package com.bedantas.personregistry.domain;
+package com.bedantas.personregistry.domain.model;
 
 /**
  * Sobrenome da pessoa. Value Object: imutavel e sempre valido.

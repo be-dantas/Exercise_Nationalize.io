@@ -1,4 +1,6 @@
-package com.bedantas.personregistry.domain;
+package com.bedantas.personregistry.domain.model;
+
+import com.bedantas.personregistry.domain.error.ErroDeDominio;
 
 import java.util.regex.Pattern;
 

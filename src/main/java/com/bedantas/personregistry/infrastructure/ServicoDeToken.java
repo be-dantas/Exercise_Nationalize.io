@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import com.bedantas.personregistry.domain.ErroDeDominio;
+import com.bedantas.personregistry.domain.error.ErroDeDominio;
 
 /**
  * Autenticacao por token opaco.

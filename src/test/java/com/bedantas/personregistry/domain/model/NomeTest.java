@@ -1,4 +1,6 @@
-package com.bedantas.personregistry.domain;
+package com.bedantas.personregistry.domain.model;
+
+import com.bedantas.personregistry.domain.error.ErroDeDominio;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
