@@ -159,23 +159,6 @@ A validação é o módulo 11 sobre os dois dígitos, e rejeita à parte a armad
 Os value objects validam no construtor, então instância inválida não chega a
 existir.
 
-### Nacionalidade: devolve o nome do país
-
-A `api.nationalize.io` responde com o código ISO (`"BR"`) e o enunciado pede o
-**nome**: `java.util.Locale` converte usando os dados de idioma que já vêm no
-JDK, sem dependência nova.
-
-A consulta usa **nome + sobrenome**, e a escolha foi medida:
-
-| Consulta | Resposta da API |
-|---|---|
-| `Beatriz` | Espanha, 19,8% — errado |
-| `Beatriz Dantas` | **Brasil, 66,6%** — certo |
-| `Beatriz Dantas da Silva` | Brasil, 36,5% — certo, menos confiante |
-
-Nome do meio dilui a estatística, então nome + sobrenome é o ponto ótimo — e é
-exatamente o par de campos que o enunciado pede no cadastro.
-
 ### Armazenamento: em memória
 
 Permitido pelo enunciado, e faz o avaliador rodar com um comando sem instalar
