@@ -13,7 +13,8 @@ Requisito único: um **JDK 21 ou superior**. O Maven não precisa estar instalad
 o wrapper baixa a versão certa sozinho.
 
 ```bash
-./mvnw -q spring-boot:run
+./mvnw -q spring-boot:run       # Linux e macOS
+.\mvnw.cmd -q spring-boot:run   # Windows (PowerShell ou cmd)
 ```
 
 Ao subir, imprime:
@@ -27,13 +28,17 @@ Ao subir, imprime:
 
 Depois é só abrir **http://localhost:8080**.
 
-| O que | Comando |
-|---|---|
-| Rodar | `./mvnw -q spring-boot:run` |
-| Testar | `./mvnw -q test` |
-| Apagar o que o build gerou | `./mvnw -q clean` |
-| Gerar o jar | `./mvnw -q clean package` |
-| Rodar o jar sozinho | `java -jar target/*.jar` |
+| O que | Linux · macOS | Windows |
+|---|---|---|
+| Rodar | `./mvnw -q spring-boot:run` | `.\mvnw.cmd -q spring-boot:run` |
+| Testar | `./mvnw -q test` | `.\mvnw.cmd -q test` |
+| Apagar o que o build gerou | `./mvnw -q clean` | `.\mvnw.cmd -q clean` |
+| Gerar o jar | `./mvnw -q clean package` | `.\mvnw.cmd -q clean package` |
+| Rodar o jar sozinho | `java -jar target/*.jar` | `java -jar target\person-registry-api-0.0.1-SNAPSHOT.jar` |
+
+O `.\` na frente do `mvnw.cmd` é obrigatório no PowerShell, que não procura
+executáveis na pasta atual. Se o projeto chegou como `.zip` e o Linux ou macOS
+recusar o `./mvnw` com *permission denied*, rode `chmod +x mvnw` uma vez.
 
 O `clean` apaga a pasta `target/`, que guarda os `.class` e o jar e é recriada
 a cada build — nada dela vai para o repositório. Vale rodar quando o resultado
@@ -101,6 +106,20 @@ curl -H "X-API-Key: $CHAVE" localhost:8080/findNacionalityByPerson/52998224725
 # 200  {"name":"Beatriz Dantas","nationality":"Brazil","probability":0.665717}
 ```
 
+No Windows, `curl` é apelido de `Invoke-WebRequest` e não aceita os mesmos
+argumentos. O equivalente nativo do PowerShell:
+
+```powershell
+$chave = 'chave-de-demonstracao-2026'
+$corpo = '{"document":"529.982.247-25","name":"Beatriz","lastName":"Dantas","email":"be@exemplo.com"}'
+
+Invoke-RestMethod -Method Post http://localhost:8080/registrarName `
+  -Headers @{ 'X-API-Key' = $chave } -ContentType 'application/json' -Body $corpo
+
+Invoke-RestMethod http://localhost:8080/findNacionalityByPerson/52998224725 `
+  -Headers @{ 'X-API-Key' = $chave }
+```
+
 ---
 
 ## Decisões
@@ -139,6 +158,23 @@ A validação é o módulo 11 sobre os dois dígitos, e rejeita à parte a armad
 
 Os value objects validam no construtor, então instância inválida não chega a
 existir.
+
+### Nacionalidade: devolve o nome do país
+
+A `api.nationalize.io` responde com o código ISO (`"BR"`) e o enunciado pede o
+**nome**: `java.util.Locale` converte usando os dados de idioma que já vêm no
+JDK, sem dependência nova.
+
+A consulta usa **nome + sobrenome**, e a escolha foi medida:
+
+| Consulta | Resposta da API |
+|---|---|
+| `Beatriz` | Espanha, 19,8% — errado |
+| `Beatriz Dantas` | **Brasil, 66,6%** — certo |
+| `Beatriz Dantas da Silva` | Brasil, 36,5% — certo, menos confiante |
+
+Nome do meio dilui a estatística, então nome + sobrenome é o ponto ótimo — e é
+exatamente o par de campos que o enunciado pede no cadastro.
 
 ### Armazenamento: em memória
 
@@ -184,7 +220,8 @@ camadas.
 ## Testes
 
 ```bash
-./mvnw -q test
+./mvnw -q test        # Linux e macOS
+.\mvnw.cmd -q test    # Windows
 ```
 
 **88 testes**, nenhum deles precisa de rede:
