@@ -138,8 +138,30 @@
   button.mini{ padding:6px 13px; font-size:.5625rem; letter-spacing:.1em }
 
   /* ---------- avisos ---------- */
-  .aviso, .invertido{ opacity:0; transition:opacity .35s ease }
-  .aviso.visivel, .invertido.visivel{ opacity:1 }
+  .aviso, .invertido, .modal{ opacity:0; transition:opacity .35s ease }
+  .aviso.visivel, .invertido.visivel, .modal.visivel{ opacity:1 }
+
+  /* ---------- confirmacao de exclusao ---------- */
+  .modal{
+    position:fixed; inset:0; z-index:20;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(15,15,15,.55);
+    padding:32px;
+  }
+  .modal[hidden]{ display:none }
+  .modal-caixa{
+    background:var(--papel);
+    border:2px solid var(--tinta);
+    padding:34px;
+    max-width:440px; width:100%;
+  }
+  .modal-caixa .rotulo{
+    font-size:.625rem; font-weight:800; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--suave);
+  }
+  .modal-caixa h2{ margin:12px 0 6px; font-size:1.25rem }
+  .modal-caixa .detalhe{ font-size:.8125rem; color:var(--suave); font-variant-numeric:tabular-nums }
+  .modal-caixa .alerta{ margin-top:18px; font-size:.8125rem }
 
   .aviso{
     margin-top:22px;
@@ -309,6 +331,19 @@
     <div><strong>Teste técnico</strong> — Java 21 · Spring Boot · armazenamento em memória</div>
     <div><strong>be-dantas</strong></div>
   </footer>
+</div>
+
+<div class="modal" id="modal-excluir" hidden>
+  <div class="modal-caixa">
+    <div class="rotulo">Confirmar exclusão</div>
+    <h2 id="modal-nome"></h2>
+    <div class="detalhe" id="modal-documento"></div>
+    <p class="alerta">Esta ação não pode ser desfeita.</p>
+    <div class="acoes">
+      <button type="button" id="btn-confirmar">Excluir</button>
+      <button type="button" class="vazado" id="btn-cancelar">Cancelar</button>
+    </div>
+  </div>
 </div>
 
 <div class="invertido" id="painel-nacionalidade" hidden>
@@ -509,7 +544,7 @@
         btnExcluir.className = "vazado mini";
         btnExcluir.textContent = "Excluir";
         btnExcluir.style.marginLeft = "8px";
-        btnExcluir.addEventListener("click", () => excluir(p.document));
+        btnExcluir.addEventListener("click", () => pedirConfirmacao(p));
 
         acoes.append(celulaNacionalidade, btnExcluir);
         linha.append(acoes);
@@ -551,16 +586,48 @@
   });
 
   // ---------- exclusao ----------
+  /** Guarda quem esta em vias de ser excluido, enquanto a confirmacao esta aberta. */
+  let pessoaParaExcluir = null;
+
+  function pedirConfirmacao(pessoa) {
+    pessoaParaExcluir = pessoa;
+    $("modal-nome").textContent = `${pessoa.name} ${pessoa.lastName}`;
+    $("modal-documento").textContent = "documento " + pessoa.document;
+    aparecer($("modal-excluir"));
+    $("btn-cancelar").focus();
+  }
+
+  function fecharConfirmacao() {
+    pessoaParaExcluir = null;
+    esconder($("modal-excluir"));
+  }
+
   async function excluir(documento) {
     const aviso = $("aviso-lista");
     esconder(aviso);
     try {
       await api("/list/" + encodeURIComponent(documento), { method: "DELETE" });
+      // sem isto, recadastrar o mesmo documento reaproveitaria a nacionalidade
+      // consultada antes e a linha voltaria ja preenchida
+      nacionalidadesConsultadas.delete(documento);
       await carregarLista();
     } catch (e) {
       mostrar(aviso, "Não foi possível excluir: " + e.message, e.codigo);
     }
   }
+
+  $("btn-confirmar").addEventListener("click", async () => {
+    const documento = pessoaParaExcluir?.document;
+    fecharConfirmacao();
+    if (documento) await excluir(documento);
+  });
+  $("btn-cancelar").addEventListener("click", fecharConfirmacao);
+  $("modal-excluir").addEventListener("click", (evento) => {
+    if (evento.target === $("modal-excluir")) fecharConfirmacao();   // clique fora fecha
+  });
+  document.addEventListener("keydown", (evento) => {
+    if (evento.key === "Escape" && !$("modal-excluir").hidden) fecharConfirmacao();
+  });
 
   // ---------- 03. nacionalidade ----------
   /**
