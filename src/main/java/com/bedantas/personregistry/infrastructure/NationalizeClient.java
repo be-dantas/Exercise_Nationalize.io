@@ -38,7 +38,6 @@ public class NationalizeClient implements PrevisorDeNacionalidade {
 
     private final RestClient http;
 
-    /** Nome consultado -> previsao. Vazio significa "consultado, sem palpite". */
     private final Map<String, Optional<Nacionalidade>> cache = new ConcurrentHashMap<>();
 
     public NationalizeClient(@Value("${nationalize.url}") String url) {
@@ -46,6 +45,13 @@ public class NationalizeClient implements PrevisorDeNacionalidade {
         fabrica.setConnectTimeout(Duration.ofSeconds(3));
         fabrica.setReadTimeout(Duration.ofSeconds(5));
         this.http = RestClient.builder().requestFactory(fabrica).baseUrl(url).build();
+    }
+
+    /** Espelho do JSON da API externa; os nomes seguem o contrato deles. */
+    private record Resposta(String name, List<Pais> country) {
+    }
+
+    private record Pais(String country_id, double probability) {
     }
 
     @Override
@@ -99,12 +105,5 @@ public class NationalizeClient implements PrevisorDeNacionalidade {
     private String nomeDoPais(String codigoIso) {
         String nome = Locale.of("", codigoIso).getDisplayCountry(Locale.ENGLISH);
         return nome.isBlank() ? codigoIso : nome;
-    }
-
-    /** Espelho do JSON da API externa; os nomes seguem o contrato deles. */
-    private record Resposta(String name, List<Pais> country) {
-    }
-
-    private record Pais(String country_id, double probability) {
     }
 }

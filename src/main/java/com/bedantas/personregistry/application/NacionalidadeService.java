@@ -24,12 +24,12 @@ public class NacionalidadeService {
         this.previsor = previsor;
     }
 
+    public record Resultado(Pessoa pessoa, Optional<Nacionalidade> previsao) {
+    }
+
     public Resultado descobrir(Documento documento) {
         Pessoa pessoa = pessoas.obter(documento);
         Optional<Nacionalidade> previsao = previsor.preverPara(pessoa.nomeParaPrevisao());
         return new Resultado(pessoa, previsao);
-    }
-
-    public record Resultado(Pessoa pessoa, Optional<Nacionalidade> previsao) {
     }
 }
