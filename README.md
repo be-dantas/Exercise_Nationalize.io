@@ -123,6 +123,9 @@ Java era obrigatório; o framework, livre. Escolhi **Spring Boot 4.1.1**, padrã
 mercado Java, e dele usei apenas o `starter-webmvc` — duas dependências de
 produção no `pom.xml` inteiro.
 
+Ficaram de fora por decisão: **Spring Security**, **JPA**, **Lombok**, **Bean
+Validation** e **Docker**.
+
 ### O `{Parametro}` é o documento (CPF)
 
 CPF é a identidade natural de uma pessoa no Brasil. O RG foi descartado por ser
