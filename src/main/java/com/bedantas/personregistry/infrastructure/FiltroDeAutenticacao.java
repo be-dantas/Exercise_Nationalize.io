@@ -11,21 +11,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/**
- * Exige uma chave de API em todas as rotas de negocio.
- *
- * O enunciado permite "um sistema de autenticacao geral para todas as APIs" e
- * deixa o mecanismo a criterio de quem faz a prova. Escolhi chave de API por
- * ser o mecanismo mais simples que atende o requisito e permanece inteiramente
- * explicavel - proporcional a um cadastro com dados ficticios.
- *
- * Apenas a pagina estatica fica fora: ela precisa carregar para que alguem
- * possa digitar a chave. Todo o resto exige o cabecalho.
- *
- * A chave nunca aparece no codigo da pagina: quem usa a interface digita, e ela
- * vive apenas na memoria do navegador. Nao existe segredo no cliente - o que
- * chega ao navegador, o usuario le.
- */
 @Component
 public class FiltroDeAutenticacao extends OncePerRequestFilter {
 
@@ -59,11 +44,6 @@ public class FiltroDeAutenticacao extends OncePerRequestFilter {
                 || caminho.startsWith("/findNacionalityByPerson/");
     }
 
-    /**
-     * Comparacao em tempo constante: String.equals sai no primeiro caractere
-     * diferente, e essa diferenca de tempo pode ser medida para descobrir a
-     * chave caractere a caractere.
-     */
     private boolean chaveConfere(String recebida) {
         if (recebida == null || recebida.length() != chaveEsperada.length()) {
             return false;
@@ -75,7 +55,6 @@ public class FiltroDeAutenticacao extends OncePerRequestFilter {
         return diferenca == 0;
     }
 
-    /** O filtro roda antes dos controllers, entao escreve o erro no formato do contrato. */
     private void recusar(HttpServletResponse resposta) throws IOException {
         resposta.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         resposta.setContentType("application/json;charset=UTF-8");

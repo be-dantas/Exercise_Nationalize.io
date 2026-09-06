@@ -49,7 +49,7 @@ Spring. Tire o `-q` para ver o log completo do Maven.
 
 ---
 
-## O que a prova pedia
+## O que a prova pede
 
 | Requisito | Onde está |
 |---|---|
@@ -59,7 +59,7 @@ Spring. Tire o `-q` para ver o log completo do Maven.
 | `GET /list/{param}` | `PessoaController`, o parâmetro é o documento |
 | `DELETE /list/{param}` | `PessoaController` |
 | `GET /findNacionalityByPerson/{param}` devolvendo o **nome** da nacionalidade | `NacionalidadeController` + `NationalizeClient` |
-| Pelo menos uma validação de tipo por API | Value Objects `Documento`, `Nome`, `Email` |
+| Pelo menos uma validação de tipo por API | Value Objects `Documento`, `Nome`, `Sobrenome`, `Email` |
 | Autenticação (opção geral, para todas as APIs) | `FiltroDeAutenticacao`, cabeçalho `X-API-Key` |
 | Interface web consumindo ao menos uma API | `static/index.html`, consome todas |
 
@@ -75,7 +75,7 @@ Spring. Tire o `-q` para ver o log completo do Maven.
 | `DELETE` | `/list/{document}` | 🔒 | `204` | `400` `401` `404` |
 | `GET` | `/findNacionalityByPerson/{document}` | 🔒 | `200` `{name, nationality, probability}` | `400` `404` `503` |
 
-Todo erro usa o mesmo formato:
+Todo erro usa o mesmo formato, exemplo:
 
 ```json
 { "error": "INVALID_DATA", "message": "e-mail invalido: nao-e-email" }
@@ -105,134 +105,101 @@ curl -H "X-API-Key: $CHAVE" localhost:8080/findNacionalityByPerson/52998224725
 
 ## Decisões
 
-O enunciado diz "a critério de quem realiza a prova" quatro vezes. Estas foram
-as escolhas e o motivo de cada uma.
+O enunciado diz "a critério de quem realiza a prova" quatro vezes. Estas são as
+escolhas e o motivo de cada uma.
+
+### O framework é Spring Boot
+
+Java era obrigatório; o framework, livre. Escolhi **Spring Boot 4.1.1**, padrão do
+mercado Java, e dele usei apenas o `starter-webmvc` — duas dependências de
+produção no `pom.xml` inteiro.
+
+Deixei de fora, por decisão: **Spring Security** (um filtro de 86 linhas atende e
+continua explicável), **JPA** (o enunciado permite memória), **Lombok** (`record`
+já resolve), **Bean Validation** (a validação vive nos tipos) e **Docker** (um
+processo único, sem serviço externo para orquestrar).
 
 ### O `{Parametro}` é o documento
 
-É a identidade natural da entidade: único, estável e significativo para o
-negócio. Um id autoincremento exporia um detalhe de persistência na API pública.
+Identidade natural da entidade: único, estável e significativo para o negócio. Um
+id autoincremento exporia um detalhe de persistência na API pública.
 
-*Contrapartida:* se o documento for um identificador nacional, ele vira dado
-pessoal dentro da URL — e URL vai parar em log de acesso, proxy e histórico do
-navegador, em texto puro. Neste escopo a legibilidade de
-`GET /list/52998224725` compensa, mas num sistema com dados pessoais reais eu
-usaria um id opaco no caminho.
+*Contrapartida:* o CPF vira dado pessoal na URL, que vai parar em log e
+histórico. Com dados reais, eu usaria um id opaco no caminho.
 
-### O documento é um CPF, validado de verdade
+### O documento é um CPF, validado pelo dígito verificador
 
-O enunciado pede "documento" sem dizer qual. Escolhi **CPF** por ser a
-identidade natural de uma pessoa no Brasil: nacional, único e — ao contrário do
-RG — com formato padronizado e algoritmo de verificação.
+CPF é a identidade natural de uma pessoa no Brasil. O RG foi descartado por ser
+estadual, não único e sem algoritmo de validação.
 
-O RG foi descartado por três motivos técnicos: é emitido por estado (cada SSP
-numera do seu jeito), a mesma pessoa pode ter vários, e não existe algoritmo
-para validá-lo. Um identificador que não é único não serve como identidade.
+A validação é o módulo 11 sobre os dois dígitos, e rejeita à parte a armadilha de
+`00000000000` e afins, que **passam** no cálculo sem serem CPFs válidos. A forma
+bruta é conferida **antes** da normalização: limpando primeiro,
+`<script>alert(1)</script>` viraria dígitos e passaria.
 
-A validação é a oficial: dois dígitos verificadores por módulo 11. Inclui a
-armadilha que muita implementação esquece — `00000000000`, `11111111111` e
-afins **satisfazem** o cálculo do dígito verificador e ainda assim não são CPFs
-válidos, então são rejeitados à parte.
-
-A forma bruta é validada **antes** da normalização, de propósito: se a limpeza
-viesse primeiro, `<script>alert(1)</script>` seria reduzido a dígitos e poderia
-passar. Só ponto e hífen — os separadores que o CPF realmente usa — são aceitos
-e removidos.
-
-*Contrapartida assumida:* a API rejeita documentos de outros países (DNI, RUT,
-passaporte). A mensagem de erro diz explicitamente
-`"CPF invalido: digito verificador nao confere"`, para que isso se leia como
-regra e não como defeito. Trocar de país significa mudar **apenas** o
-`Documento` — nenhum caso de uso, controller ou teste de outra camada muda.
+*Contrapartida:* documentos de outros países são recusados; a mensagem cita o
+dígito verificador para que isso se leia como regra, não como defeito.
 
 ### A validação vive nos tipos, não em Bean Validation
 
-`Documento`, `Nome` e `Email` validam dentro do próprio construtor, então uma
-instância inválida não chega a existir em lugar nenhum do sistema.
-
-`@Valid` / `@NotBlank` no DTO cobriria apenas o `POST` — anotação de DTO não
-vale para `@PathVariable`, então `GET` e `DELETE` ficariam descobertos. Usar os
-dois duplicaria cada regra em dois lugares que podem divergir. Uma regra, um
-dono.
+Os value objects validam no construtor, então instância inválida não chega a
+existir. `@Valid` cobriria só o `POST` — não vale para `@PathVariable` — e usar
+os dois duplicaria cada regra em lugares que podem divergir.
 
 ### O endpoint de nacionalidade devolve o nome do país
 
-A `api.nationalize.io` responde com código ISO 3166-1 alpha-2 (`"BR"`), e o
-enunciado pede o *nome* da nacionalidade. O `java.util.Locale` faz a conversão
-usando os dados CLDR que já vêm no JDK — sem dependência extra.
+A API externa responde com código ISO (`"BR"`) e o enunciado pede o *nome*:
+`java.util.Locale` converte com os dados que já vêm no JDK.
 
-**A consulta usa nome + sobrenome.** Medido contra a API real durante o
+**A consulta usa nome + sobrenome**, medido contra a API durante o
 desenvolvimento:
 
 | Consulta | Resultado |
 |---|---|
 | `Beatriz` | 🇪🇸 Espanha 19,8% — errado |
 | `Beatriz Dantas` | 🇧🇷 Brasil **66,6%** — certo |
-| `Beatriz Dantas da Silva` | 🇧🇷 Brasil 36,5% — certo, menos confiante |
-| `Yuki` → `Yuki Tanaka` | Japão 46,3% → **65,5%** |
+| `Beatriz Dantas da Silva` | 🇧🇷 Brasil 36,5% — menos confiante |
 
 Nome do meio dilui a previsão, então nome + sobrenome é o ponto ótimo — que é
-exatamente a estrutura de campos que o enunciado especifica. A resposta devolve
-o nome que foi realmente enviado, para ser autoexplicativa.
+exatamente a estrutura de campos do enunciado.
 
-Quando o serviço não tem palpite, o endpoint responde `200` com nacionalidade
-nula: a pessoa existe, só falta a previsão. Um `404` daria a entender,
-erradamente, que a pessoa não está cadastrada.
-
-**O plano gratuito da API permite 25 requisições por dia** (cabeçalho
-`x-rate-limit-limit`). Por isso o adapter guarda em cache o que já consultou:
-repetir a mesma consulta não gasta cota. E se o limite estourar mesmo assim, a
-resposta diz exatamente isso —
-
-```json
-{ "error": "EXTERNAL_SERVICE_UNAVAILABLE",
-  "message": "limite diario de requisicoes da api.nationalize.io atingido (25/dia no plano gratuito); tente novamente mais tarde" }
-```
-
-— em vez de um erro genérico que pareceria defeito da aplicação. O cache, o
-timeout e o tratamento do limite vivem todos dentro do adapter: nenhuma outra
-camada sabe que existem.
+O plano gratuito permite 25 requisições por dia, então o adapter mantém cache do
+que já consultou, e o estouro de cota é dito explicitamente na resposta. Sem
+palpite para o nome, responde `200` com nacionalidade nula: a pessoa existe, só
+falta a previsão.
 
 ### O armazenamento é em memória
 
-O enunciado permite *"banco de dados, armazenamento em memória, etc."*. Um
-`ConcurrentHashMap` atrás da porta `PessoaRepository` faz o avaliador rodar com
-um comando, sem instalar nada.
-
-*Consequência:* os dados não sobrevivem a um restart. Trocar por JPA/PostgreSQL
-significa acrescentar uma classe adapter — nenhum caso de uso, controller ou
-teste de domínio muda. Essa substituibilidade é justamente o motivo da porta
-existir.
+Permitido pelo enunciado, e faz o avaliador rodar com um comando sem instalar
+nada. Os dados não sobrevivem a um restart; trocar por JPA/PostgreSQL é
+acrescentar uma classe adapter, sem tocar em caso de uso, controller ou teste de
+domínio.
 
 ### A autenticação cobre todas as APIs, por chave
 
-O enunciado oferece duas opções — proteger a API mais crítica, ou um sistema
-geral para todas — e deixa o mecanismo livre, citando "usuário e senha, token de
-autenticação, IP, etc.". Escolhi a **segunda opção com chave de API**: as cinco
-APIs exigem o cabeçalho `X-API-Key`.
+Das duas opções do enunciado — a API mais crítica ou todas — escolhi a segunda,
+com **chave de API**: as cinco exigem o cabeçalho `X-API-Key`. Fica de fora só a
+página, que precisa carregar para que alguém digite a chave. O mecanismo mais
+simples que atende foi escolhido de propósito: proporcional a um cadastro de
+dados fictícios, com o controle de acesso inteiro em 86 linhas.
 
-Fica de fora apenas a página estática, que precisa carregar para que alguém
-possa digitar a chave. Todo o resto exige o cabeçalho.
+**A chave nunca aparece no código da página** — é digitada no portão e vive só na
+memória da aba, dentro de uma closure. Quem não a tem não encontra nada no
+DevTools: ela não está em nenhum arquivo que o navegador baixa, nem alcançável
+pelo console. Quem já digitou vê a própria chave nos cabeçalhos das requisições
+que fez, o que é inerente a HTTP e não vaza nada para terceiros — é o mesmo que
+acontece com o cookie de sessão de qualquer site.
 
-**Por que chave e não usuário/senha com token.** O requisito é proteger um
-cadastro de dados fictícios; o mecanismo mais simples que atende é uma chave
-compartilhada. Isso mantém o controle de acesso em um arquivo de 86 linhas,
-inteiramente explicável, em vez de acrescentar hash de senha, emissão de token e
-expiração — que seriam desproporcionais ao escopo.
+Embutir a chave no JavaScript é justamente o que se evitou: aí qualquer visitante
+leria o segredo sem ter credencial nenhuma. Criptografar no cliente não
+resolveria, porque a chave de descriptografia estaria no mesmo arquivo.
 
-**A chave nunca aparece no código da página.** A interface abre num portão onde
-ela é digitada, e a partir daí vive apenas na memória da aba. Recarregar exige
-informá-la de novo. Isso importa porque **não existe segredo no cliente**: tudo
-que chega ao navegador o usuário consegue ler, e nenhuma criptografia no
-JavaScript resolveria isso — a chave de descriptografia estaria no mesmo lugar.
+A comparação é em **tempo constante**, já que `String.equals` retorna no primeiro
+caractere diferente e essa diferença pode ser medida para recuperar a chave.
 
-A comparação da chave é feita em **tempo constante**. `String.equals` retorna no
-primeiro caractere diferente, e essa diferença de tempo pode ser medida para
-descobrir a chave caractere a caractere.
-
-**Limitações assumidas:** a chave não expira e não é revogável sem reiniciar a
-aplicação, e não há noção de usuário. Num sistema real com dados pessoais isso
-seria login com senha em hash, token com expiração e trilha de auditoria.
+*Limitações assumidas:* a chave não expira, não é revogável sem reiniciar e não há
+noção de usuário. Com dados reais, seria login com senha em hash, token com
+expiração e auditoria.
 
 ### Arquitetura: Clean Architecture com parte do DDD tático
 
@@ -287,22 +254,3 @@ escolhas trocam cerimônia por legibilidade neste tamanho.
 | `DocumentoTest`, `NomeTest`, `EmailTest` | regras de validação, normalização e payloads de injeção |
 | `NacionalidadeServiceTest` | caso de uso com adapters falsos — sem rede, sem Spring |
 | `ApiEndToEndTest` | sobe a aplicação numa porta real e exercita todos os endpoints por HTTP, autenticação incluída |
-
-A suíte end-to-end não chama o serviço externo; aquele caminho é coberto por
-implementações falsas, então tudo roda sem internet.
-
----
-
-## Limitações, e o que viria depois
-
-- **Os dados não persistem** entre execuções. Está a uma classe adapter de um
-  banco de verdade.
-- **O cache da chamada externa é simples e não expira.** Resolve o limite de 25
-  requisições por dia, mas num sistema real teria tempo de vida e limite de
-  tamanho. Como está isolado no adapter, evoluir não toca em nenhuma outra
-  camada.
-- **Um único usuário fixo.** O enunciado não pede gestão de usuários. Usuários
-  reais viveriam no repositório, atrás da mesma porta.
-- **Sem conteinerização.** Rodar exige um comando e um JDK; containerizar seria
-  o passo natural para deploy.
-- **O documento é dado pessoal na URL** — discutido acima.
