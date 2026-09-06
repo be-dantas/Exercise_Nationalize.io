@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
-import com.bedantas.personregistry.domain.model.Nacionalidade;
+import com.bedantas.personregistry.domain.valueobject.Nacionalidade;
 import com.bedantas.personregistry.domain.port.PrevisorDeNacionalidade;
 import com.bedantas.personregistry.domain.error.ErroDeDominio;
 

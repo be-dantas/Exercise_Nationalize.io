@@ -4,9 +4,9 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import com.bedantas.personregistry.domain.model.Documento;
-import com.bedantas.personregistry.domain.model.Nacionalidade;
-import com.bedantas.personregistry.domain.model.Pessoa;
+import com.bedantas.personregistry.domain.valueobject.Documento;
+import com.bedantas.personregistry.domain.valueobject.Nacionalidade;
+import com.bedantas.personregistry.domain.entity.Pessoa;
 import com.bedantas.personregistry.domain.port.PrevisorDeNacionalidade;
 
 /**

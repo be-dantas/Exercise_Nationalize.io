@@ -235,13 +235,18 @@ Detalhes que valem registro:
 
 ```
 domain/
-  model/         entidades e value objects        — Java puro
-  port/          contratos com o mundo externo    — Java puro
-  error/         falhas de negócio                — Java puro
-application/     casos de uso                     — Java puro
+  entity/        Pessoa — tem identidade (o documento)        — Java puro
+  valueobject/   Documento, Nome, Sobrenome, Email,
+                 Nacionalidade — definidos pelos valores      — Java puro
+  port/          contratos com o mundo externo                — Java puro
+  error/         falhas de negócio                            — Java puro
+application/     casos de uso                                 — Java puro
 infrastructure/  repositório em memória, cliente HTTP, autenticação
 presentation/    controllers, DTOs, tratamento de erro, página estática
 ```
+
+As pastas nomeiam os padrões, então a listagem já descreve o domínio: uma
+entidade, cinco objetos de valor, duas portas e um tipo de falha.
 
 As portas ficam em `domain/port` e não em `application`: elas usam apenas tipos
 de domínio e fazem parte da linguagem do negócio — é a leitura do DDD e da

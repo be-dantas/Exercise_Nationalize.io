@@ -1,4 +1,4 @@
-package com.bedantas.personregistry.domain.model;
+package com.bedantas.personregistry.domain.valueobject;
 
 import com.bedantas.personregistry.domain.error.ErroDeDominio;
 
@@ -8,7 +8,8 @@ public record Nome(String valor) {
 
     private static final Pattern LETRAS = Pattern.compile("^[\\p{L} '-]+$");
     private static final int MINIMO = 2;
-    static final int MAXIMO = 50;
+    /** Limite de uma PARTE do nome. Publico porque o teste da entidade o consulta. */
+    public static final int MAXIMO = 50;
 
     public Nome {
         valor = validar(valor, "nome");

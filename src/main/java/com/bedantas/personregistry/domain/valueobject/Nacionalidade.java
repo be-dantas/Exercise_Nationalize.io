@@ -1,4 +1,4 @@
-package com.bedantas.personregistry.domain.model;
+package com.bedantas.personregistry.domain.valueobject;
 
 /**
  * Previsao de nacionalidade. Value Object.

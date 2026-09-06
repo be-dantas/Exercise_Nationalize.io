@@ -1,6 +1,6 @@
 package com.bedantas.personregistry.domain.error;
 
-import com.bedantas.personregistry.domain.model.Documento;
+import com.bedantas.personregistry.domain.valueobject.Documento;
 
 /**
  * Todas as falhas de negocio do sistema, num lugar so.

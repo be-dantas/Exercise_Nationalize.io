@@ -1,4 +1,4 @@
-package com.bedantas.personregistry.domain.model;
+package com.bedantas.personregistry.domain.valueobject;
 
 import com.bedantas.personregistry.domain.error.ErroDeDominio;
 

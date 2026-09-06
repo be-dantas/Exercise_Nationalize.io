@@ -1,4 +1,9 @@
-package com.bedantas.personregistry.domain.model;
+package com.bedantas.personregistry.domain.entity;
+
+import com.bedantas.personregistry.domain.valueobject.Documento;
+import com.bedantas.personregistry.domain.valueobject.Email;
+import com.bedantas.personregistry.domain.valueobject.Nome;
+import com.bedantas.personregistry.domain.valueobject.Sobrenome;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;

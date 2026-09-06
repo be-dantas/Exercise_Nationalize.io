@@ -8,8 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
 
-import com.bedantas.personregistry.domain.model.Documento;
-import com.bedantas.personregistry.domain.model.Pessoa;
+import com.bedantas.personregistry.domain.valueobject.Documento;
+import com.bedantas.personregistry.domain.entity.Pessoa;
 import com.bedantas.personregistry.domain.port.PessoaRepository;
 
 /**

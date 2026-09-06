@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bedantas.personregistry.application.PessoaService;
-import com.bedantas.personregistry.domain.model.Documento;
-import com.bedantas.personregistry.domain.model.Email;
-import com.bedantas.personregistry.domain.model.Nome;
-import com.bedantas.personregistry.domain.model.Sobrenome;
-import com.bedantas.personregistry.domain.model.Pessoa;
+import com.bedantas.personregistry.domain.valueobject.Documento;
+import com.bedantas.personregistry.domain.valueobject.Email;
+import com.bedantas.personregistry.domain.valueobject.Nome;
+import com.bedantas.personregistry.domain.valueobject.Sobrenome;
+import com.bedantas.personregistry.domain.entity.Pessoa;
 
 @RestController
 public class PessoaController {

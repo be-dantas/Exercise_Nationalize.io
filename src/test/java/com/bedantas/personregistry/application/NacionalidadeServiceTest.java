@@ -12,12 +12,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.bedantas.personregistry.domain.model.Documento;
-import com.bedantas.personregistry.domain.model.Email;
-import com.bedantas.personregistry.domain.model.Nacionalidade;
-import com.bedantas.personregistry.domain.model.Nome;
-import com.bedantas.personregistry.domain.model.Pessoa;
-import com.bedantas.personregistry.domain.model.Sobrenome;
+import com.bedantas.personregistry.domain.valueobject.Documento;
+import com.bedantas.personregistry.domain.valueobject.Email;
+import com.bedantas.personregistry.domain.valueobject.Nacionalidade;
+import com.bedantas.personregistry.domain.valueobject.Nome;
+import com.bedantas.personregistry.domain.entity.Pessoa;
+import com.bedantas.personregistry.domain.valueobject.Sobrenome;
 import com.bedantas.personregistry.domain.error.ErroDeDominio;
 import com.bedantas.personregistry.domain.port.PessoaRepository;
 import com.bedantas.personregistry.domain.port.PrevisorDeNacionalidade;
