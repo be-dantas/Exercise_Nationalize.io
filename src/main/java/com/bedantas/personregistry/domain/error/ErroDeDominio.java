@@ -1,7 +1,5 @@
 package com.bedantas.personregistry.domain.error;
 
-import com.bedantas.personregistry.domain.valueobject.Documento;
-
 public abstract class ErroDeDominio extends RuntimeException {
 
     protected ErroDeDominio(String mensagem) {
@@ -27,12 +25,6 @@ public abstract class ErroDeDominio extends RuntimeException {
     public static class PessoaJaCadastrada extends ErroDeDominio {
         public PessoaJaCadastrada(String documento) {
             super("ja existe uma pessoa cadastrada com o documento " + documento);
-        }
-    }
-
-    public static class CredencialInvalida extends ErroDeDominio {
-        public CredencialInvalida() {
-            super("usuario ou senha invalidos");
         }
     }
 
