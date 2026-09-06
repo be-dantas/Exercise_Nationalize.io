@@ -247,10 +247,33 @@ escolhas trocam cerimônia por legibilidade neste tamanho.
 ./mvnw -q test
 ```
 
-56 testes:
+**88 testes**, nenhum deles precisa de rede:
 
-| Suíte | O que cobre |
-|---|---|
-| `DocumentoTest`, `NomeTest`, `EmailTest` | regras de validação, normalização e payloads de injeção |
-| `NacionalidadeServiceTest` | caso de uso com adapters falsos — sem rede, sem Spring |
-| `ApiEndToEndTest` | sobe a aplicação numa porta real e exercita todos os endpoints por HTTP, autenticação incluída |
+| Suíte | Testes | O que cobre |
+|---|---:|---|
+| `DocumentoTest` | 24 | CPF: dígito verificador, dígitos repetidos, payloads de injeção |
+| `NomeTest` / `SobrenomeTest` | 29 | regras de nome, normalização e a mensagem citando o campo certo |
+| `EmailTest` | 12 | formato e normalização |
+| `PessoaTest` | 3 | a entidade e o nome enviado à previsão |
+| `PessoaServiceTest` | 3 | duplicidade, e concorrência: 100 rodadas de 8 threads no mesmo documento |
+| `NacionalidadeServiceTest` | 5 | caso de uso com adapters falsos — sem rede, sem Spring |
+| `ApiEndToEndTest` | 11 | sobe numa porta real e exercita os cinco endpoints por HTTP, autenticação incluída |
+| contexto Spring | 1 | a aplicação sobe |
+
+A suíte end-to-end não chama o serviço externo — aquele caminho é coberto por
+implementações falsas, então nada consome a cota de 25 requisições por dia.
+
+## Limitações assumidas
+
+- **Os dados não persistem** entre execuções. Uma classe adapter separa isto de
+  um banco real.
+- **O cache da nacionalidade não expira nem tem limite de tamanho.** Medido:
+  ~536 bytes por pessoa cadastrada mais a entrada de cache correspondente, e
+  10.000 pessoas ocupam 5 MB. Na prática o crescimento é contido pela cota da
+  API externa — 25 consultas novas por dia, cerca de 13 KB. Num sistema real
+  teria tempo de vida e limite; como está isolado no adapter, evoluir não toca
+  em nenhuma outra camada.
+- **A chave de API não expira** e não é revogável sem reiniciar, e não há noção
+  de usuário.
+- **Sem conteinerização.** Rodar exige um comando e um JDK.
+- **O documento é dado pessoal na URL**, discutido acima.
