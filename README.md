@@ -105,7 +105,7 @@ curl -H "X-API-Key: $CHAVE" localhost:8080/findNacionalityByPerson/52998224725
 
 ## Decisões
 
-O enunciado diz "a critério de quem realiza a prova" quatro vezes. Estas são as
+O enunciado diz "a critério de quem realiza a prova". Estas são as
 escolhas e o motivo de cada uma.
 
 ### O framework é Spring Boot
