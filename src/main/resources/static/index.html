@@ -57,30 +57,28 @@
   .meta dt{ font-weight:800; letter-spacing:.1em; text-transform:uppercase; font-size:.625rem }
   .meta dd{ margin:0; color:var(--suave) }
 
-  /* ---------- sessao ---------- */
-  .sessao{
-    display:flex; align-items:flex-end; gap:22px; flex-wrap:wrap;
-    padding:20px 0; border-bottom:1px solid var(--linha);
+  /* ---------- portao de entrada ---------- */
+  .portao{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px;
   }
-  .sessao .campo{ min-width:150px }
-  .sessao .cadeado{
-    margin-left:auto; font-size:.625rem; font-weight:800;
-    letter-spacing:.12em; text-transform:uppercase; color:var(--suave);
+  .portao[hidden]{ display:none }
+  .portao-caixa{ width:100%; max-width:420px }
+  .portao h1{ font-size:clamp(3rem,9vw,4.5rem) }
+  .portao .subtitulo{ margin-bottom:52px; padding-bottom:22px; border-bottom:2px solid var(--tinta) }
+  .portao .acoes{ margin-top:28px }
+  .portao button{ width:100% }
+  .portao .nota{ margin-top:26px; font-size:.6875rem; color:var(--suave); line-height:1.6 }
+
+  .sair{
+    position:fixed; top:20px; right:20px;
+    font-size:.5625rem; padding:8px 14px;
+    background:transparent; color:var(--tinta);
   }
-  .sessao-ativa{
-    display:flex; align-items:center; gap:20px; flex-wrap:wrap;
-    margin-top:20px; padding:16px 20px; background:var(--tinta); color:var(--papel);
-  }
-  .sessao[hidden], .sessao-ativa[hidden]{ display:none }
-  .sessao-ativa .rotulo{
-    font-size:.625rem; font-weight:800; letter-spacing:.16em;
-    text-transform:uppercase; opacity:.55;
-  }
-  .sessao-ativa .quem{ font-weight:800; letter-spacing:-.01em }
-  .sessao-ativa button{
-    margin-left:auto; background:transparent; color:var(--papel); border-color:var(--papel);
-  }
-  .sessao-ativa button:hover{ background:var(--papel); color:var(--tinta) }
+  .sair:hover{ background:var(--tinta); color:var(--papel) }
 
   /* ---------- secoes ---------- */
   section{ margin-top:56px }
@@ -210,7 +208,30 @@
 </style>
 </head>
 <body>
-<div class="folha">
+<div class="portao" id="portao">
+  <div class="portao-caixa">
+    <h1>cadastro.</h1>
+    <div class="subtitulo">Pessoas &amp; Nacionalidade</div>
+
+    <label for="chave">Chave de acesso</label>
+    <input id="chave" type="password" placeholder="veja o README" autocomplete="off">
+
+    <div class="acoes">
+      <button type="button" id="btn-entrar">Entrar</button>
+    </div>
+
+    <p class="aviso" id="aviso-portao" hidden></p>
+
+    <p class="nota">
+      A chave é digitada aqui e fica apenas na memória desta aba — nunca no
+      código da página. Recarregar exige informá-la de novo.
+    </p>
+  </div>
+</div>
+
+<button type="button" class="sair" id="btn-sair" hidden>Sair</button>
+
+<div class="folha" id="app" hidden>
 
   <header class="topo">
     <div>
@@ -223,28 +244,6 @@
       <div><dt>Registros</dt><dd id="contador">—</dd></div>
     </dl>
   </header>
-
-  <form class="sessao" id="form-login">
-    <div class="campo">
-      <label for="usuario">Usuário</label>
-      <input id="usuario" value="admin" autocomplete="username">
-    </div>
-    <div class="campo">
-      <label for="senha">Senha</label>
-      <input id="senha" type="password" placeholder="veja o README" autocomplete="current-password">
-    </div>
-    <button type="submit">Entrar</button>
-    <span class="cadeado">Cadastrar e excluir exigem sessão</span>
-  </form>
-
-  <div class="sessao-ativa" id="sessao-ativa" hidden>
-    <div>
-      <div class="rotulo">Sessão ativa</div>
-      <div class="quem" id="usuario-ativo"></div>
-    </div>
-    <button type="button" id="btn-sair">Sair</button>
-  </div>
-  <p class="aviso" id="aviso-login" hidden></p>
 
   <section>
     <div class="cabecalho-secao">
@@ -347,15 +346,16 @@
   const $ = (id) => document.getElementById(id);
 
   /**
-   * O token vive so em memoria: nao vai para localStorage nem para o codigo da
-   * pagina. Recarregar exige entrar de novo, que e o comportamento correto.
+   * A chave vive so em memoria: nao vai para localStorage nem para o codigo da
+   * pagina. Recarregar exige informa-la de novo, que e o comportamento correto.
+   * Nao existe segredo no cliente - o que chega ao navegador, o usuario le.
    */
-  let token = null;
+  let chave = null;
 
   /** Toda chamada passa por aqui: um lugar so para tratar erro da API. */
   async function api(caminho, opcoes = {}) {
     const cabecalhos = { "Content-Type": "application/json" };
-    if (token) cabecalhos["Authorization"] = "Bearer " + token;
+    if (chave) cabecalhos["X-API-Key"] = chave;
 
     const resposta = await fetch(caminho, { headers: cabecalhos, ...opcoes });
 
@@ -384,38 +384,52 @@
   }
   const esconder = (elemento) => { elemento.hidden = true; };
 
-  // ---------- sessao ----------
-  function atualizarSessao(usuario) {
-    const autenticado = token !== null;
-    $("form-login").hidden = autenticado;
-    $("sessao-ativa").hidden = !autenticado;
-    if (autenticado) $("usuario-ativo").textContent = usuario;
+  // ---------- portao de entrada ----------
+  function mostrarApp(mostrar) {
+    $("portao").hidden = mostrar;
+    $("app").hidden = !mostrar;
+    $("btn-sair").hidden = !mostrar;
   }
 
   function encerrarSessao() {
-    token = null;
-    atualizarSessao(null);
+    chave = null;
+    $("chave").value = "";
+    mostrarApp(false);
   }
 
-  $("form-login").addEventListener("submit", async (evento) => {
-    evento.preventDefault();
-    const aviso = $("aviso-login");
+  /** Valida a chave usando o proprio endpoint de listagem: 200 entra, 401 recusa. */
+  async function entrar() {
+    const aviso = $("aviso-portao");
     esconder(aviso);
-    const usuario = $("usuario").value;
+    const informada = $("chave").value.trim();
+
+    if (!informada) {
+      mostrar(aviso, "Informe a chave de acesso.");
+      return;
+    }
 
     try {
-      const sessao = await api("/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ username: usuario, password: $("senha").value }),
-      });
-      token = sessao.token;
-      $("senha").value = "";
-      atualizarSessao(usuario);
+      const resposta = await fetch("/list", { headers: { "X-API-Key": informada } });
+      if (resposta.status === 401) {
+        mostrar(aviso, "Chave incorreta.");
+        return;
+      }
+      if (!resposta.ok) {
+        mostrar(aviso, "Não foi possível validar a chave agora.");
+        return;
+      }
+      chave = informada;
+      mostrarApp(true);
+      await carregarLista();
     } catch (e) {
-      mostrar(aviso, e.message, e.codigo);
+      mostrar(aviso, "Não foi possível falar com a API: " + e.message);
     }
-  });
+  }
 
+  $("btn-entrar").addEventListener("click", entrar);
+  $("chave").addEventListener("keydown", (evento) => {
+    if (evento.key === "Enter") entrar();
+  });
   $("btn-sair").addEventListener("click", encerrarSessao);
 
   // ---------- 02. listagem ----------
@@ -549,8 +563,7 @@
 
   $("btn-atualizar").addEventListener("click", carregarLista);
 
-  atualizarSessao(null);
-  carregarLista();
+  mostrarApp(false);
 })();
 </script>
 </body>

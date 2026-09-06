@@ -27,12 +27,6 @@ public class PessoaController {
         this.servico = servico;
     }
 
-    /**
-     * O contrato JSON e em ingles porque e a interface externa da API.
-     * A validacao acontece na construcao dos Value Objects logo abaixo:
-     * qualquer campo invalido lanca ErroDeDominio.DadoInvalido, traduzida em 400
-     * pelo TratadorGlobalDeErros.
-     */
     public record RegistrarPessoaRequest(
             String document, String name, String lastName, String email) {
     }
@@ -62,10 +56,6 @@ public class PessoaController {
                 .body(PessoaResponse.de(pessoa));
     }
 
-    /**
-     * O parametro e o documento (identidade natural da pessoa). Construir o
-     * Value Object ja valida o formato: nenhum "if" extra e necessario aqui.
-     */
     @GetMapping("/list/{document}")
     public PessoaResponse obter(@PathVariable String document) {
         return PessoaResponse.de(servico.obter(new Documento(document)));
@@ -76,7 +66,6 @@ public class PessoaController {
         return servico.listar().stream().map(PessoaResponse::de).toList();
     }
 
-    /** 204: sucesso sem corpo. Excluir de novo devolve 404. */
     @DeleteMapping("/list/{document}")
     public ResponseEntity<Void> excluir(@PathVariable String document) {
         servico.excluir(new Documento(document));

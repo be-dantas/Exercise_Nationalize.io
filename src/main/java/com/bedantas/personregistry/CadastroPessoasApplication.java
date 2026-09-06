@@ -20,15 +20,15 @@ public class CadastroPessoasApplication {
      */
     private static void anunciar(Environment ambiente) {
         String porta = ambiente.getProperty("server.port", "8080");
-        String usuario = ambiente.getProperty("auth.usuario", "admin");
+        String chave = ambiente.getProperty("auth.api-key", "");
 
         System.out.printf("""
 
                   cadastro.  ->  http://localhost:%s
 
-                  login de demonstracao: %s / admin123
+                  chave de demonstracao: %s
                   encerrar: Ctrl+C
 
-                """, porta, usuario);
+                """, porta, chave);
     }
 }

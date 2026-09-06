@@ -21,7 +21,7 @@ Ao subir, imprime:
 ```
   cadastro.  ->  http://localhost:8080
 
-  login de demonstracao: admin / admin123
+  chave de demonstracao: chave-de-demonstracao-2026
   encerrar: Ctrl+C
 ```
 
@@ -53,7 +53,7 @@ Spring. Tire o `-q` para ver o log completo do Maven.
 | `DELETE /list/{param}` | `PessoaController` |
 | `GET /findNacionalityByPerson/{param}` devolvendo o **nome** da nacionalidade | `NacionalidadeController` + `NationalizeClient` |
 | Pelo menos uma validação de tipo por API | Value Objects `Documento`, `Nome`, `Email` |
-| Autenticação na API mais crítica | `FiltroDeAutenticacao` no `POST` e no `DELETE` |
+| Autenticação (opção geral, para todas as APIs) | `FiltroDeAutenticacao`, cabeçalho `X-API-Key` |
 | Interface web consumindo ao menos uma API | `static/index.html`, consome todas |
 
 ---
@@ -62,12 +62,11 @@ Spring. Tire o `-q` para ver o log completo do Maven.
 
 | Método | Rota | Auth | Sucesso | Erros |
 |---|---|:---:|---|---|
-| `POST` | `/auth/login` | — | `200` `{token, expiresInSeconds}` | `401` |
 | `POST` | `/registrarName` | 🔒 | `201` + `Location: /list/{document}` | `400` `401` `409` |
-| `GET` | `/list` | — | `200` lista ordenada por nome | — |
-| `GET` | `/list/{document}` | — | `200` | `400` `404` |
+| `GET` | `/list` | 🔒 | `200` lista ordenada por nome | — |
+| `GET` | `/list/{document}` | 🔒 | `200` | `400` `404` |
 | `DELETE` | `/list/{document}` | 🔒 | `204` | `400` `401` `404` |
-| `GET` | `/findNacionalityByPerson/{document}` | — | `200` `{name, nationality, probability}` | `400` `404` `503` |
+| `GET` | `/findNacionalityByPerson/{document}` | 🔒 | `200` `{name, nationality, probability}` | `400` `404` `503` |
 | `GET` | `/health` | — | `200` | — |
 
 Todo erro usa o mesmo formato:
@@ -85,16 +84,14 @@ está em português, acompanhando a língua do enunciado.
 ### Exemplo de uso
 
 ```bash
-TOKEN=$(curl -s -X POST localhost:8080/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"username":"admin","password":"admin123"}' | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+CHAVE='chave-de-demonstracao-2026'
 
 curl -X POST localhost:8080/registrarName \
-  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -H "X-API-Key: $CHAVE" -H 'Content-Type: application/json' \
   -d '{"document":"529.982.247-25","name":"Beatriz","lastName":"Dantas","email":"be@exemplo.com"}'
 # 201  {"document":"52998224725", ...}      a pontuação é normalizada
 
-curl localhost:8080/findNacionalityByPerson/52998224725
+curl -H "X-API-Key: $CHAVE" localhost:8080/findNacionalityByPerson/52998224725
 # 200  {"name":"Beatriz Dantas","nationality":"Brazil","probability":0.665717}
 ```
 
@@ -201,35 +198,36 @@ significa acrescentar uma classe adapter — nenhum caso de uso, controller ou
 teste de domínio muda. Essa substituibilidade é justamente o motivo da porta
 existir.
 
-### A autenticação protege as operações de escrita
+### A autenticação cobre todas as APIs, por chave
 
-`POST /registrarName` e `DELETE /list/{document}` exigem token; os três `GET`
-ficam abertos.
+O enunciado oferece duas opções — proteger a API mais crítica, ou um sistema
+geral para todas — e deixa o mecanismo livre, citando "usuário e senha, token de
+autenticação, IP, etc.". Escolhi a **segunda opção com chave de API**: as cinco
+APIs exigem o cabeçalho `X-API-Key`.
 
-`DELETE` é a operação mais crítica — destrutiva e irreversível — e o `POST`
-também altera estado. Leitura não muda nada, e deixá-la aberta permite avaliar
-a API sem atrito.
+Ficam de fora apenas a página estática e o `/health`: a tela precisa carregar
+para que alguém possa digitar a chave, e o `/health` existe justamente para
+verificar se a aplicação subiu, antes de qualquer credencial.
 
-**Token opaco em vez de JWT.** A aplicação roda em instância única, então a
-validação sem estado do JWT não traria benefício algum aqui, enquanto o token
-opaco dá revogação imediata. Escalar horizontalmente moveria o mapa de tokens
-para um Redis, ou trocaria por JWT aceitando manter uma lista de revogados.
+**Por que chave e não usuário/senha com token.** O requisito é proteger um
+cadastro de dados fictícios; o mecanismo mais simples que atende é uma chave
+compartilhada. Isso mantém o controle de acesso em um arquivo de 86 linhas,
+inteiramente explicável, em vez de acrescentar hash de senha, emissão de token e
+expiração — que seriam desproporcionais ao escopo.
 
-**Escrito à mão em vez de usar o `spring-boot-starter-security`.** O requisito é
-pequeno, e um `OncePerRequestFilter` de 40 linhas mantém cada linha do controle
-de acesso visível e explicável. Só o `spring-security-crypto` entra, para o
-BCrypt — ele não traz cadeia de filtros nem autoconfiguração.
+**A chave nunca aparece no código da página.** A interface abre num portão onde
+ela é digitada, e a partir daí vive apenas na memória da aba. Recarregar exige
+informá-la de novo. Isso importa porque **não existe segredo no cliente**: tudo
+que chega ao navegador o usuário consegue ler, e nenhuma criptografia no
+JavaScript resolveria isso — a chave de descriptografia estaria no mesmo lugar.
 
-Detalhes que valem registro:
+A comparação da chave é feita em **tempo constante**. `String.equals` retorna no
+primeiro caractere diferente, e essa diferença de tempo pode ser medida para
+descobrir a chave caractere a caractere.
 
-- A senha é guardada como hash BCrypt, nunca em texto puro.
-- O hash é verificado mesmo quando o usuário está errado, para o tempo de
-  resposta não revelar quais usuários existem.
-- Usuário errado e senha errada devolvem a mesma mensagem.
-- No navegador o token vive apenas em memória — não vai para `localStorage` nem
-  aparece no código-fonte da página.
-- As linhas da tabela são montadas com `createElement`/`textContent`, não com
-  `innerHTML`, então um nome com HTML dentro aparece como texto e nunca executa.
+**Limitações assumidas:** a chave não expira e não é revogável sem reiniciar a
+aplicação, e não há noção de usuário. Num sistema real com dados pessoais isso
+seria login com senha em hash, token com expiração e trilha de auditoria.
 
 ### Arquitetura: Clean Architecture com parte do DDD tático
 

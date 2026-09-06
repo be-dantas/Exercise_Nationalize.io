@@ -4,8 +4,6 @@ import com.bedantas.personregistry.domain.error.ErroDeDominio;
 
 import java.util.regex.Pattern;
 
-
-/** Endereco de e-mail. Value Object: imutavel e sempre valido. */
 public record Email(String valor) {
 
     private static final Pattern PADRAO =

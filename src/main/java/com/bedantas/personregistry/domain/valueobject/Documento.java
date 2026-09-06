@@ -4,18 +4,6 @@ import com.bedantas.personregistry.domain.error.ErroDeDominio;
 
 import java.util.regex.Pattern;
 
-/**
- * CPF da pessoa. Value Object: imutavel e sempre valido.
- *
- * A forma bruta e validada ANTES da normalizacao, de proposito: se a limpeza
- * viesse primeiro, uma entrada como "<script>alert(1)</script>" seria reduzida
- * a digitos e poderia passar. So os separadores que o CPF realmente usa
- * (ponto e hifen) sao aceitos e removidos.
- *
- * A validacao e especifica do Brasil por decisao de escopo. Trocar por outro
- * pais significa mudar apenas este arquivo - nenhum caso de uso, controller ou
- * teste de outra camada e afetado.
- */
 public record Documento(String valor) {
 
     private static final int TAMANHO_MAXIMO_ACEITO = 20;
@@ -40,8 +28,7 @@ public record Documento(String valor) {
         if (!ONZE_DIGITOS.matcher(valor).matches()) {
             throw new ErroDeDominio.DadoInvalido("CPF deve ter 11 digitos");
         }
-        // 00000000000, 11111111111 e afins satisfazem o calculo do digito
-        // verificador, mas nao sao CPFs validos. Precisam de rejeicao propria.
+
         if (valor.chars().distinct().count() == 1) {
             throw new ErroDeDominio.DadoInvalido("CPF invalido: digitos repetidos");
         }

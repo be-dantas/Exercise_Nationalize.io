@@ -1,12 +1,12 @@
 package com.bedantas.personregistry.presentation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
@@ -24,8 +24,13 @@ import org.springframework.web.client.RestClient;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ApiEndToEndTest {
 
+    private static final String CABECALHO = "X-API-Key";
+
     @LocalServerPort
     int porta;
+
+    @Value("${auth.api-key}")
+    String chave;
 
     private RestClient http;
 
@@ -38,146 +43,141 @@ class ApiEndToEndTest {
                 .build();
     }
 
-    private record TokenResposta(String token, long expiresInSeconds) {
-    }
-
     private String pessoaJson(String documento, String email) {
         return """
                {"document":"%s","name":"Beatriz","lastName":"Dantas","email":"%s"}
                """.formatted(documento, email);
     }
 
-    private String autenticar() {
-        TokenResposta t = http.post().uri("/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body("{\"username\":\"admin\",\"password\":\"admin123\"}")
-                .retrieve().body(TokenResposta.class);
-        assertNotNull(t);
-        return t.token();
-    }
-
-    private ResponseEntity<String> cadastrar(String documento, String email, String token) {
-        var pedido = http.post().uri("/registrarName")
-                .contentType(MediaType.APPLICATION_JSON);
-        if (token != null) {
-            pedido = pedido.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+    private ResponseEntity<String> cadastrar(String documento, String email, String chaveUsada) {
+        var pedido = http.post().uri("/registrarName").contentType(MediaType.APPLICATION_JSON);
+        if (chaveUsada != null) {
+            pedido = pedido.header(CABECALHO, chaveUsada);
         }
         return pedido.body(pessoaJson(documento, email)).retrieve().toEntity(String.class);
+    }
+
+    private ResponseEntity<String> get(String caminho, String chaveUsada) {
+        var pedido = http.get().uri(caminho);
+        if (chaveUsada != null) {
+            pedido = pedido.header(CABECALHO, chaveUsada);
+        }
+        return pedido.retrieve().toEntity(String.class);
     }
 
     // ---------- disponibilidade ----------
 
     @Test
-    @DisplayName("a aplicacao sobe e responde")
-    void aplicacaoSobe() {
+    @DisplayName("/health responde sem chave: serve para verificar que a aplicacao subiu")
+    void healthNaoExigeChave() {
         var r = http.get().uri("/health").retrieve().toEntity(String.class);
         assertEquals(200, r.getStatusCode().value());
         assertTrue(r.getBody().contains("UP"));
     }
 
-    // ---------- autenticacao ----------
+    @Test
+    @DisplayName("a pagina carrega sem chave: e nela que a chave e digitada")
+    void paginaNaoExigeChave() {
+        var r = http.get().uri("/").retrieve().toEntity(String.class);
+        assertEquals(200, r.getStatusCode().value());
+    }
+
+    // ---------- a chave protege as cinco APIs ----------
 
     @Test
-    @DisplayName("login com senha errada devolve 401")
-    void loginComSenhaErrada() {
-        var r = http.post().uri("/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body("{\"username\":\"admin\",\"password\":\"errada\"}")
-                .retrieve().toEntity(String.class);
+    @DisplayName("sem chave, todas as cinco APIs devolvem 401")
+    void semChaveTudoRecusa() {
+        assertEquals(401, cadastrar("10433218100", "a@ex.com", null).getStatusCode().value());
+        assertEquals(401, get("/list", null).getStatusCode().value());
+        assertEquals(401, get("/list/10433218100", null).getStatusCode().value());
+        assertEquals(401, get("/findNacionalityByPerson/10433218100", null).getStatusCode().value());
+        assertEquals(401, http.delete().uri("/list/10433218100")
+                .retrieve().toEntity(String.class).getStatusCode().value());
+    }
+
+    @Test
+    @DisplayName("chave errada tambem devolve 401, com o formato de erro do contrato")
+    void chaveErradaRecusa() {
+        var r = get("/list", "chave-errada");
         assertEquals(401, r.getStatusCode().value());
         assertTrue(r.getBody().contains("UNAUTHORIZED"));
     }
 
     @Test
-    @DisplayName("login correto devolve um token")
-    void loginCorreto() {
-        assertTrue(autenticar().length() > 20);
+    @DisplayName("chave do tamanho certo mas com um caractere trocado tambem recusa")
+    void chaveQuaseCertaRecusa() {
+        String quase = chave.substring(0, chave.length() - 1) + "X";
+        assertEquals(401, get("/list", quase).getStatusCode().value());
     }
 
-    // ---------- escrita protegida ----------
+    // ---------- com a chave, tudo funciona ----------
 
     @Test
-    @DisplayName("cadastrar sem token devolve 401")
-    void cadastrarSemToken() {
-        var r = cadastrar("08386379499", "a@ex.com", null);
-        assertEquals(401, r.getStatusCode().value());
-        assertTrue(r.getBody().contains("UNAUTHORIZED"));
-    }
-
-    @Test
-    @DisplayName("cadastrar com token devolve 201 e o header Location")
-    void cadastrarComToken() {
-        var r = cadastrar("02654235114", "b@ex.com", autenticar());
+    @DisplayName("cadastrar devolve 201 e o header Location")
+    void cadastrarComChave() {
+        var r = cadastrar("96001338914", "b@ex.com", chave);
         assertEquals(201, r.getStatusCode().value());
-        assertEquals("/list/02654235114", r.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals("/list/96001338914", r.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 
     @Test
-    @DisplayName("excluir sem token devolve 401; com token devolve 204")
-    void excluirExigeToken() {
-        String token = autenticar();
-        cadastrar("16155940789", "c@ex.com", token);
+    @DisplayName("listar e obter funcionam com a chave")
+    void leituraComChave() {
+        cadastrar("08386379499", "c@ex.com", chave);
 
-        var semToken = http.delete().uri("/list/16155940789").retrieve().toEntity(String.class);
-        assertEquals(401, semToken.getStatusCode().value());
-
-        var comToken = http.delete().uri("/list/16155940789")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .retrieve().toEntity(String.class);
-        assertEquals(204, comToken.getStatusCode().value());
-    }
-
-    @Test
-    @DisplayName("token invalido devolve 401")
-    void tokenInvalido() {
-        var r = cadastrar("81618495950", "d@ex.com", "token-que-nao-existe");
-        assertEquals(401, r.getStatusCode().value());
-    }
-
-    // ---------- leitura aberta ----------
-
-    @Test
-    @DisplayName("leitura nao exige token")
-    void leituraAberta() {
-        String token = autenticar();
-        cadastrar("31034131656", "e@ex.com", token);
-
-        var lista = http.get().uri("/list").retrieve().toEntity(String.class);
+        var lista = get("/list", chave);
         assertEquals(200, lista.getStatusCode().value());
-        assertTrue(lista.getBody().contains("31034131656"));
+        assertTrue(lista.getBody().contains("08386379499"));
 
-        var um = http.get().uri("/list/31034131656").retrieve().toEntity(String.class);
-        assertEquals(200, um.getStatusCode().value());
+        assertEquals(200, get("/list/08386379499", chave).getStatusCode().value());
     }
+
+    @Test
+    @DisplayName("excluir devolve 204 e a pessoa some")
+    void excluirComChave() {
+        cadastrar("02654235114", "d@ex.com", chave);
+
+        var exclusao = http.delete().uri("/list/02654235114").header(CABECALHO, chave)
+                .retrieve().toEntity(String.class);
+        assertEquals(204, exclusao.getStatusCode().value());
+        assertEquals(404, get("/list/02654235114", chave).getStatusCode().value());
+    }
+
+    // ---------- erros de dominio ----------
 
     @Test
     @DisplayName("documento inexistente devolve 404 e formato invalido devolve 400")
     void erros404e400() {
-        var naoExiste = http.get().uri("/list/35030564160").retrieve().toEntity(String.class);
+        var naoExiste = get("/list/16155940789", chave);
         assertEquals(404, naoExiste.getStatusCode().value());
         assertTrue(naoExiste.getBody().contains("NOT_FOUND"));
 
-        var formatoRuim = http.get().uri("/list/abc").retrieve().toEntity(String.class);
+        var formatoRuim = get("/list/abc", chave);
         assertEquals(400, formatoRuim.getStatusCode().value());
         assertTrue(formatoRuim.getBody().contains("INVALID_DATA"));
     }
 
-    // ---------- validacao ----------
-
     @Test
-    @DisplayName("e-mail invalido devolve 400 mesmo autenticado")
+    @DisplayName("e-mail invalido devolve 400 mesmo com a chave certa")
     void emailInvalido() {
-        var r = cadastrar("47525534144", "nao-e-email", autenticar());
+        var r = cadastrar("81618495950", "nao-e-email", chave);
         assertEquals(400, r.getStatusCode().value());
         assertTrue(r.getBody().contains("INVALID_DATA"));
     }
 
     @Test
+    @DisplayName("CPF com digito verificador errado devolve 400")
+    void cpfInvalido() {
+        var r = cadastrar("12345678900", "e@ex.com", chave);
+        assertEquals(400, r.getStatusCode().value());
+        assertTrue(r.getBody().contains("digito verificador"));
+    }
+
+    @Test
     @DisplayName("documento duplicado devolve 409")
     void documentoDuplicado() {
-        String token = autenticar();
-        cadastrar("92832764851", "f@ex.com", token);
-        var segunda = cadastrar("92832764851", "g@ex.com", token);
+        cadastrar("31034131656", "f@ex.com", chave);
+        var segunda = cadastrar("31034131656", "g@ex.com", chave);
         assertEquals(409, segunda.getStatusCode().value());
         assertTrue(segunda.getBody().contains("ALREADY_EXISTS"));
     }

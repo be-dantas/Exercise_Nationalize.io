@@ -12,11 +12,6 @@ import com.bedantas.personregistry.domain.valueobject.Sobrenome;
 import com.bedantas.personregistry.domain.entity.Pessoa;
 import com.bedantas.personregistry.domain.port.PessoaRepository;
 
-/**
- * Casos de uso de pessoa. Recebe Value Objects ja validados: a conversao de
- * texto cru para dominio acontece na borda (controller), entao aqui nao existe
- * dado invalido possivel.
- */
 @Service
 public class PessoaService {
 

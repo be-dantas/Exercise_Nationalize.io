@@ -42,11 +42,6 @@ public class TratadorGlobalDeErros {
                 .body(new RespostaDeErro("EXTERNAL_SERVICE_UNAVAILABLE", e.getMessage()));
     }
 
-    @ExceptionHandler(ErroDeDominio.CredencialInvalida.class)
-    public ResponseEntity<RespostaDeErro> credencialInvalida(ErroDeDominio.CredencialInvalida e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(new RespostaDeErro("UNAUTHORIZED", e.getMessage()));
-    }
 
     /** Corpo ausente ou JSON malformado. */
     @ExceptionHandler(HttpMessageNotReadableException.class)
