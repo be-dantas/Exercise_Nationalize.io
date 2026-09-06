@@ -17,7 +17,6 @@ public class PessoaRepositoryEmMemoria implements PessoaRepository {
 
     private final Map<Documento, Pessoa> dados = new ConcurrentHashMap<>();
 
-    /** putIfAbsent do ConcurrentHashMap: consulta e escrita num passo atomico. */
     @Override
     public boolean salvarSeAusente(Pessoa pessoa) {
         return dados.putIfAbsent(pessoa.documento(), pessoa) == null;
@@ -28,7 +27,6 @@ public class PessoaRepositoryEmMemoria implements PessoaRepository {
         return Optional.ofNullable(dados.get(documento));
     }
 
-    /** Ordenado por nome para a saida ser estavel entre chamadas. */
     @Override
     public List<Pessoa> listarTodas() {
         return dados.values().stream()

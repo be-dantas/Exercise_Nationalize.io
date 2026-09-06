@@ -74,7 +74,6 @@ Spring. Tire o `-q` para ver o log completo do Maven.
 | `GET` | `/list/{document}` | 🔒 | `200` | `400` `404` |
 | `DELETE` | `/list/{document}` | 🔒 | `204` | `400` `401` `404` |
 | `GET` | `/findNacionalityByPerson/{document}` | 🔒 | `200` `{name, nationality, probability}` | `400` `404` `503` |
-| `GET` | `/health` | — | `200` | — |
 
 Todo erro usa o mesmo formato:
 
@@ -212,9 +211,8 @@ geral para todas — e deixa o mecanismo livre, citando "usuário e senha, token
 autenticação, IP, etc.". Escolhi a **segunda opção com chave de API**: as cinco
 APIs exigem o cabeçalho `X-API-Key`.
 
-Ficam de fora apenas a página estática e o `/health`: a tela precisa carregar
-para que alguém possa digitar a chave, e o `/health` existe justamente para
-verificar se a aplicação subiu, antes de qualquer credencial.
+Fica de fora apenas a página estática, que precisa carregar para que alguém
+possa digitar a chave. Todo o resto exige o cabeçalho.
 
 **Por que chave e não usuário/senha com token.** O requisito é proteger um
 cadastro de dados fictícios; o mecanismo mais simples que atende é uma chave

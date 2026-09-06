@@ -8,10 +8,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.bedantas.personregistry.domain.error.ErroDeDominio;
 
-/**
- * Unico lugar que traduz excecao de dominio em status HTTP.
- * Por isso nenhum controller precisa de try/catch.
- */
 @RestControllerAdvice
 public class TratadorGlobalDeErros {
 

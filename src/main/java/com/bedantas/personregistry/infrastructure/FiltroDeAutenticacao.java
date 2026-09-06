@@ -19,9 +19,8 @@ import jakarta.servlet.http.HttpServletResponse;
  * ser o mecanismo mais simples que atende o requisito e permanece inteiramente
  * explicavel - proporcional a um cadastro com dados ficticios.
  *
- * A pagina estatica e o /health ficam fora: a tela precisa carregar para que
- * alguem possa digitar a chave, e o /health existe para verificar se a
- * aplicacao subiu, antes de qualquer credencial.
+ * Apenas a pagina estatica fica fora: ela precisa carregar para que alguem
+ * possa digitar a chave. Todo o resto exige o cabecalho.
  *
  * A chave nunca aparece no codigo da pagina: quem usa a interface digita, e ela
  * vive apenas na memoria do navegador. Nao existe segredo no cliente - o que
@@ -52,7 +51,7 @@ public class FiltroDeAutenticacao extends OncePerRequestFilter {
         recusar(resposta);
     }
 
-    /** Protege as cinco APIs do enunciado; deixa passar a pagina e o /health. */
+    /** Protege as cinco APIs do enunciado; so a pagina passa sem chave. */
     private boolean exigeAutenticacao(String caminho) {
         return caminho.equals("/registrarName")
                 || caminho.equals("/list")

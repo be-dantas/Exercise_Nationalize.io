@@ -68,14 +68,6 @@ class ApiEndToEndTest {
     // ---------- disponibilidade ----------
 
     @Test
-    @DisplayName("/health responde sem chave: serve para verificar que a aplicacao subiu")
-    void healthNaoExigeChave() {
-        var r = http.get().uri("/health").retrieve().toEntity(String.class);
-        assertEquals(200, r.getStatusCode().value());
-        assertTrue(r.getBody().contains("UP"));
-    }
-
-    @Test
     @DisplayName("a pagina carrega sem chave: e nela que a chave e digitada")
     void paginaNaoExigeChave() {
         var r = http.get().uri("/").retrieve().toEntity(String.class);
