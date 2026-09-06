@@ -138,6 +138,9 @@
   button.mini{ padding:6px 13px; font-size:.5625rem; letter-spacing:.1em }
 
   /* ---------- avisos ---------- */
+  .aviso, .invertido{ opacity:0; transition:opacity .35s ease }
+  .aviso.visivel, .invertido.visivel{ opacity:1 }
+
   .aviso{
     margin-top:22px;
     padding:13px 16px;
@@ -169,27 +172,25 @@
   .resultado-linha .prob{ font-weight:400; color:var(--suave); margin-left:8px }
   .resultado-linha.sem-palpite{ font-weight:400; color:var(--suave) }
 
-  /* ---------- bloco invertido ---------- */
+  /* ---------- destaque da nacionalidade ---------- */
   .invertido{
-    margin-top:26px;
+    position:fixed;
+    left:0; right:0; bottom:0;
     background:var(--tinta);
     color:var(--papel);
-    padding:38px 34px;
+    padding:26px 32px;
+    z-index:10;
   }
   .invertido[hidden]{ display:none }
+  .invertido .interno{ max-width:1040px; margin:0 auto }
   .invertido .rotulo{
-    font-size:.625rem;
-    font-weight:800;
-    letter-spacing:.16em;
-    text-transform:uppercase;
-    opacity:.55;
+    font-size:.625rem; font-weight:800; letter-spacing:.16em;
+    text-transform:uppercase; opacity:.55;
   }
   .pais{
-    font-size:clamp(2.25rem,6.5vw,3.75rem);
-    font-weight:900;
-    letter-spacing:-.045em;
-    line-height:1;
-    margin:10px 0 20px;
+    font-size:clamp(1.75rem,5vw,3rem);
+    font-weight:900; letter-spacing:-.045em; line-height:1;
+    margin:8px 0 16px;
   }
   .barra{ height:2px; background:rgba(250,250,248,.28); margin-bottom:9px }
   .barra span{ display:block; height:100%; background:var(--papel) }
@@ -303,30 +304,22 @@
     <p class="aviso" id="aviso-lista" hidden></p>
   </section>
 
-  <section>
-    <div class="cabecalho-secao">
-      <span class="numero">03.</span>
-      <h2>Previsão de nacionalidade</h2>
-    </div>
-
-    <p class="vazio" id="nacionalidade-vazia">
-      Clique em <strong>Nacionalidade</strong> na lista acima para consultar.
-    </p>
-
-    <div class="invertido" id="painel-nacionalidade" hidden>
-      <div class="rotulo" id="rotulo-pessoa"></div>
-      <div class="pais" id="nome-pais"></div>
-      <div class="barra"><span id="barra-prob"></span></div>
-      <div class="legenda" id="legenda-prob"></div>
-    </div>
-    <p class="aviso" id="aviso-nacionalidade" hidden></p>
-  </section>
 
   <footer>
     <div><strong>Teste técnico</strong> — Java 21 · Spring Boot · armazenamento em memória</div>
     <div><strong>be-dantas</strong></div>
   </footer>
 </div>
+
+<div class="invertido" id="painel-nacionalidade" hidden>
+  <div class="interno">
+    <div class="rotulo" id="rotulo-pessoa"></div>
+    <div class="pais" id="nome-pais"></div>
+    <div class="barra"><span id="barra-prob"></span></div>
+    <div class="legenda" id="legenda-prob"></div>
+  </div>
+</div>
+<p class="aviso" id="aviso-nacionalidade" hidden></p>
 
 <script>
 (() => {
@@ -368,24 +361,32 @@
     return corpo;
   }
 
-  /** Guarda o temporizador de cada aviso, para nao acumular varios no mesmo. */
+  /** Guarda o temporizador de cada elemento, para nao acumular varios no mesmo. */
   const temporizadores = new Map();
+  const DURACAO_FADE = 350;   // precisa casar com a transicao do CSS
 
-  function mostrar(elemento, mensagem, codigo) {
-    elemento.innerHTML = codigo
-      ? `${mensagem} <code>${codigo}</code>`
-      : mensagem;
-    elemento.hidden = false;
-
-    // O aviso se apaga sozinho: erro fica mais tempo que confirmacao.
+  function aparecer(elemento) {
     clearTimeout(temporizadores.get(elemento.id));
-    const duracao = codigo ? 8000 : 4000;
-    temporizadores.set(elemento.id, setTimeout(() => { elemento.hidden = true; }, duracao));
+    elemento.hidden = false;
+    // um quadro de intervalo para o navegador registrar o estado inicial
+    // antes da transicao de opacidade comecar
+    requestAnimationFrame(() => elemento.classList.add("visivel"));
   }
 
   function esconder(elemento) {
     clearTimeout(temporizadores.get(elemento.id));
-    elemento.hidden = true;
+    elemento.classList.remove("visivel");
+    temporizadores.set(elemento.id,
+      setTimeout(() => { elemento.hidden = true; }, DURACAO_FADE));
+  }
+
+  /** Aparece com fade e se apaga sozinho; erro fica mais tempo que confirmacao. */
+  function mostrar(elemento, mensagem, codigo) {
+    elemento.innerHTML = codigo ? `${mensagem} <code>${codigo}</code>` : mensagem;
+    aparecer(elemento);
+
+    const duracao = codigo ? 8000 : 4000;
+    temporizadores.set(elemento.id, setTimeout(() => esconder(elemento), duracao));
   }
 
   // ---------- portao de entrada ----------
@@ -498,14 +499,10 @@
         const acoes = document.createElement("td");
         acoes.className = "fim";
 
-        const btnNacionalidade = document.createElement("button");
-        btnNacionalidade.type = "button";
-        btnNacionalidade.className = "vazado mini";
-        btnNacionalidade.textContent = "Nacionalidade";
-        btnNacionalidade.addEventListener("click", () => {
-          consultarNacionalidade(p.document);
-          $("painel-nacionalidade").scrollIntoView({ behavior: "smooth", block: "center" });
-        });
+        const jaConsultada = nacionalidadesConsultadas.get(p.document);
+        const celulaNacionalidade = jaConsultada
+          ? montarResultado(jaConsultada)
+          : montarBotaoConsulta(p.document);
 
         const btnExcluir = document.createElement("button");
         btnExcluir.type = "button";
@@ -514,7 +511,7 @@
         btnExcluir.style.marginLeft = "8px";
         btnExcluir.addEventListener("click", () => excluir(p.document));
 
-        acoes.append(btnNacionalidade, btnExcluir);
+        acoes.append(celulaNacionalidade, btnExcluir);
         linha.append(acoes);
         corpo.append(linha);
       }
@@ -592,13 +589,10 @@
           `Probabilidade ${porcento}% — previsão estatística de api.nationalize.io`;
       }
 
-      painel.hidden = false;
-      $("nacionalidade-vazia").hidden = true;
-      painel.scrollIntoView({ behavior: "smooth", block: "center" });
-
-      // o painel e um destaque momentaneo; a linha guarda o resultado
-      clearTimeout(temporizadores.get(painel.id));
-      temporizadores.set(painel.id, setTimeout(() => { painel.hidden = true; }, 8000));
+      // destaque momentaneo no rodape: nao rola a pagina, para a linha da
+      // tabela atualizar diante dos olhos de quem clicou
+      aparecer(painel);
+      temporizadores.set(painel.id, setTimeout(() => esconder(painel), 8000));
 
       const resultado = { pais: r.nationality, porcento };
       nacionalidadesConsultadas.set(documento, resultado);
