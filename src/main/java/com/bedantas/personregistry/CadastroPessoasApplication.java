@@ -14,10 +14,6 @@ public class CadastroPessoasApplication {
         anunciar(contexto.getEnvironment());
     }
 
-    /**
-     * O log do framework esta reduzido a WARN (ver application.properties), entao
-     * a aplicacao anuncia sozinha que subiu. Avisos e erros continuam aparecendo.
-     */
     private static void anunciar(Environment ambiente) {
         String porta = ambiente.getProperty("server.port", "8080");
         String chave = ambiente.getProperty("auth.api-key", "");

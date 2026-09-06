@@ -249,7 +249,6 @@
     <div class="cabecalho-secao">
       <span class="numero">01.</span>
       <h2>Nova pessoa</h2>
-      <span class="dica">POST /registrarName</span>
     </div>
 
     <form id="form-cadastro" novalidate>
@@ -284,7 +283,6 @@
     <div class="cabecalho-secao">
       <span class="numero">02.</span>
       <h2>Pessoas cadastradas</h2>
-      <span class="dica">GET /list</span>
     </div>
 
     <div class="rolagem">
@@ -299,9 +297,6 @@
     </div>
     <p class="vazio" id="tabela-vazia" hidden>Nenhuma pessoa cadastrada ainda.</p>
 
-    <div class="acoes">
-      <button type="button" class="vazado" id="btn-atualizar">Atualizar lista</button>
-    </div>
     <p class="aviso" id="aviso-lista" hidden></p>
   </section>
 
@@ -309,20 +304,11 @@
     <div class="cabecalho-secao">
       <span class="numero">03.</span>
       <h2>Previsão de nacionalidade</h2>
-      <span class="dica">GET /findNacionalityByPerson/{documento}</span>
     </div>
 
-    <form id="form-nacionalidade" novalidate>
-      <div class="grade">
-        <div>
-          <label for="doc-nacionalidade">Documento da pessoa</label>
-          <input id="doc-nacionalidade" placeholder="529.982.247-25" autocomplete="off">
-        </div>
-      </div>
-      <div class="acoes">
-        <button type="submit">Consultar</button>
-      </div>
-    </form>
+    <p class="vazio" id="nacionalidade-vazia">
+      Clique em <strong>Nacionalidade</strong> na lista acima para consultar.
+    </p>
 
     <div class="invertido" id="painel-nacionalidade" hidden>
       <div class="rotulo" id="rotulo-pessoa"></div>
@@ -376,13 +362,25 @@
     return corpo;
   }
 
+  /** Guarda o temporizador de cada aviso, para nao acumular varios no mesmo. */
+  const temporizadores = new Map();
+
   function mostrar(elemento, mensagem, codigo) {
     elemento.innerHTML = codigo
       ? `${mensagem} <code>${codigo}</code>`
       : mensagem;
     elemento.hidden = false;
+
+    // O aviso se apaga sozinho: erro fica mais tempo que confirmacao.
+    clearTimeout(temporizadores.get(elemento.id));
+    const duracao = codigo ? 8000 : 4000;
+    temporizadores.set(elemento.id, setTimeout(() => { elemento.hidden = true; }, duracao));
   }
-  const esconder = (elemento) => { elemento.hidden = true; };
+
+  function esconder(elemento) {
+    clearTimeout(temporizadores.get(elemento.id));
+    elemento.hidden = true;
+  }
 
   // ---------- portao de entrada ----------
   function mostrarApp(mostrar) {
@@ -466,7 +464,6 @@
         btnNacionalidade.className = "vazado mini";
         btnNacionalidade.textContent = "Nacionalidade";
         btnNacionalidade.addEventListener("click", () => {
-          $("doc-nacionalidade").value = p.document;
           consultarNacionalidade(p.document);
           $("painel-nacionalidade").scrollIntoView({ behavior: "smooth", block: "center" });
         });
@@ -551,17 +548,13 @@
         $("legenda-prob").textContent = `Probabilidade ${porcento}% — previsão estatística de api.nationalize.io`;
       }
       painel.hidden = false;
+      $("nacionalidade-vazia").hidden = true;
     } catch (e) {
       mostrar(aviso, e.message, e.codigo);
     }
   }
 
-  $("form-nacionalidade").addEventListener("submit", (evento) => {
-    evento.preventDefault();
-    consultarNacionalidade($("doc-nacionalidade").value);
-  });
 
-  $("btn-atualizar").addEventListener("click", carregarLista);
 
   mostrarApp(false);
 })();

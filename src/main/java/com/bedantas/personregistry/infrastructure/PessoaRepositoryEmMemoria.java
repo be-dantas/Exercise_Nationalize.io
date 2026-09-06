@@ -12,13 +12,6 @@ import com.bedantas.personregistry.domain.valueobject.Documento;
 import com.bedantas.personregistry.domain.entity.Pessoa;
 import com.bedantas.personregistry.domain.port.PessoaRepository;
 
-/**
- * Adapter de persistencia em memoria - o enunciado permite explicitamente
- * "armazenamento em memoria".
- *
- * Documento e um record, entao equals/hashCode por valor funcionam como chave.
- * Trocar por JPA/PostgreSQL significa criar outro adapter: nenhum caso de uso muda.
- */
 @Repository
 public class PessoaRepositoryEmMemoria implements PessoaRepository {
 
