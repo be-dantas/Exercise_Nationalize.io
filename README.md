@@ -108,43 +108,35 @@ curl -H "X-API-Key: $CHAVE" localhost:8080/findNacionalityByPerson/52998224725
 O enunciado diz "a critério de quem realiza a prova". Estas são as
 escolhas e o motivo de cada uma.
 
+Esta foi minha primeira vez escrevendo Java. Aprender uma linguagem nova nunca
+foi o obstáculo — a base em C++ transferiu quase tudo o que importa aqui, e a
+curva real ficou no ecossistema em volta, não na linguagem.
+
+Ajudou especialmente ter feito o **WebServer** da 42, onde implementei o protocolo
+HTTP na mão: parsear a requisição, montar a resposta, gerenciar as conexões.
+Resolver o mesmo problema com um framework, sabendo exatamente o que ele faz por
+baixo, foi a parte mais interessante deste projeto.
+
 ### O framework é Spring Boot
 
 Java era obrigatório; o framework, livre. Escolhi **Spring Boot 4.1.1**, padrão do
 mercado Java, e dele usei apenas o `starter-webmvc` — duas dependências de
 produção no `pom.xml` inteiro.
 
-Deixei de fora, por decisão: **Spring Security** (um filtro de 86 linhas atende e
-continua explicável), **JPA** (o enunciado permite memória), **Lombok** (`record`
-já resolve), **Bean Validation** (a validação vive nos tipos) e **Docker** (um
-processo único, sem serviço externo para orquestrar).
-
-### O `{Parametro}` é o documento
-
-Identidade natural da entidade: único, estável e significativo para o negócio. Um
-id autoincremento exporia um detalhe de persistência na API pública.
-
-*Contrapartida:* o CPF vira dado pessoal na URL, que vai parar em log e
-histórico. Com dados reais, eu usaria um id opaco no caminho.
-
-### O documento é um CPF, validado pelo dígito verificador
+### O `{Parametro}` é o documento (CPF)
 
 CPF é a identidade natural de uma pessoa no Brasil. O RG foi descartado por ser
-estadual, não único e sem algoritmo de validação.
+estadual, não único e sem algoritmo de validação. Em contrapartida, documentos
+de outros países são recusados; a mensagem cita o dígito verificador para que
+isso se leia como regra, não como defeito.
 
 A validação é o módulo 11 sobre os dois dígitos, e rejeita à parte a armadilha de
-`00000000000` e afins, que **passam** no cálculo sem serem CPFs válidos. A forma
-bruta é conferida **antes** da normalização: limpando primeiro,
-`<script>alert(1)</script>` viraria dígitos e passaria.
+`00000000000` e afins.
 
-*Contrapartida:* documentos de outros países são recusados; a mensagem cita o
-dígito verificador para que isso se leia como regra, não como defeito.
-
-### A validação vive nos tipos, não em Bean Validation
+### A validação vive nos tipos.
 
 Os value objects validam no construtor, então instância inválida não chega a
-existir. `@Valid` cobriria só o `POST` — não vale para `@PathVariable` — e usar
-os dois duplicaria cada regra em lugares que podem divergir.
+existir.
 
 ### O endpoint de nacionalidade devolve o nome do país
 
@@ -163,25 +155,16 @@ desenvolvimento:
 Nome do meio dilui a previsão, então nome + sobrenome é o ponto ótimo — que é
 exatamente a estrutura de campos do enunciado.
 
-O plano gratuito permite 25 requisições por dia, então o adapter mantém cache do
-que já consultou, e o estouro de cota é dito explicitamente na resposta. Sem
-palpite para o nome, responde `200` com nacionalidade nula: a pessoa existe, só
-falta a previsão.
-
 ### O armazenamento é em memória
 
 Permitido pelo enunciado, e faz o avaliador rodar com um comando sem instalar
-nada. Os dados não sobrevivem a um restart; trocar por JPA/PostgreSQL é
-acrescentar uma classe adapter, sem tocar em caso de uso, controller ou teste de
-domínio.
+nada. Os dados não sobrevivem a um restart.
 
 ### A autenticação cobre todas as APIs, por chave
 
 Das duas opções do enunciado — a API mais crítica ou todas — escolhi a segunda,
 com **chave de API**: as cinco exigem o cabeçalho `X-API-Key`. Fica de fora só a
-página, que precisa carregar para que alguém digite a chave. O mecanismo mais
-simples que atende foi escolhido de propósito: proporcional a um cadastro de
-dados fictícios, com o controle de acesso inteiro em 86 linhas.
+página, que precisa carregar para que alguém digite a chave.
 
 **A chave nunca aparece no código da página** — é digitada no portão e vive só na
 memória da aba, dentro de uma closure. Quem não a tem não encontra nada no
@@ -189,17 +172,6 @@ DevTools: ela não está em nenhum arquivo que o navegador baixa, nem alcançáv
 pelo console. Quem já digitou vê a própria chave nos cabeçalhos das requisições
 que fez, o que é inerente a HTTP e não vaza nada para terceiros — é o mesmo que
 acontece com o cookie de sessão de qualquer site.
-
-Embutir a chave no JavaScript é justamente o que se evitou: aí qualquer visitante
-leria o segredo sem ter credencial nenhuma. Criptografar no cliente não
-resolveria, porque a chave de descriptografia estaria no mesmo arquivo.
-
-A comparação é em **tempo constante**, já que `String.equals` retorna no primeiro
-caractere diferente e essa diferença pode ser medida para recuperar a chave.
-
-*Limitações assumidas:* a chave não expira, não é revogável sem reiniciar e não há
-noção de usuário. Com dados reais, seria login com senha em hash, token com
-expiração e auditoria.
 
 ### Arquitetura: Clean Architecture com parte do DDD tático
 
@@ -215,29 +187,12 @@ infrastructure/  repositório em memória, cliente HTTP, autenticação
 presentation/    controllers, DTOs, tratamento de erro, página estática
 ```
 
-As pastas nomeiam os padrões, então a listagem já descreve o domínio: uma
-entidade, cinco objetos de valor, duas portas e um tipo de falha.
-
 As portas ficam em `domain/port` e não em `application`: elas usam apenas tipos
 de domínio e fazem parte da linguagem do negócio — é a leitura do DDD e da
 arquitetura hexagonal. A Clean Architecture na formulação original as coloca na
 camada de casos de uso; as duas respeitam a regra da dependência, muda apenas
 onde o arquivo é arquivado. O `domain/` compila isoladamente, sem as demais
 camadas.
-
-As dependências apontam para dentro: `domain` e `application` não importam
-framework nenhum, e é por isso que os casos de uso são testados sem subir o
-Spring e sem acessar a rede.
-
-**Usados:** value object, entity, porta de repositório, porta de gateway.
-**Deixados de fora de propósito:** aggregate, domain event, factory,
-specification, bounded context. Este domínio tem uma entidade e quatro
-atributos — aplicar o catálogo inteiro adicionaria indireção sem reduzir
-complexidade.
-
-Os cinco casos de uso estão agrupados em dois services em vez de cinco classes
-de um método, e os DTOs ficam aninhados no controller que os usa. As duas
-escolhas trocam cerimônia por legibilidade neste tamanho.
 
 ---
 
@@ -259,21 +214,3 @@ escolhas trocam cerimônia por legibilidade neste tamanho.
 | `NacionalidadeServiceTest` | 5 | caso de uso com adapters falsos — sem rede, sem Spring |
 | `ApiEndToEndTest` | 11 | sobe numa porta real e exercita os cinco endpoints por HTTP, autenticação incluída |
 | contexto Spring | 1 | a aplicação sobe |
-
-A suíte end-to-end não chama o serviço externo — aquele caminho é coberto por
-implementações falsas, então nada consome a cota de 25 requisições por dia.
-
-## Limitações assumidas
-
-- **Os dados não persistem** entre execuções. Uma classe adapter separa isto de
-  um banco real.
-- **O cache da nacionalidade não expira nem tem limite de tamanho.** Medido:
-  ~536 bytes por pessoa cadastrada mais a entrada de cache correspondente, e
-  10.000 pessoas ocupam 5 MB. Na prática o crescimento é contido pela cota da
-  API externa — 25 consultas novas por dia, cerca de 13 KB. Num sistema real
-  teria tempo de vida e limite; como está isolado no adapter, evoluir não toca
-  em nenhuma outra camada.
-- **A chave de API não expira** e não é revogável sem reiniciar, e não há noção
-  de usuário.
-- **Sem conteinerização.** Rodar exige um comando e um JDK.
-- **O documento é dado pessoal na URL**, discutido acima.
