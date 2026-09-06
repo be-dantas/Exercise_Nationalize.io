@@ -165,6 +165,9 @@
   td.doc{ font-variant-numeric:tabular-nums; font-weight:600 }
   td.fim{ text-align:right; padding-right:0; white-space:nowrap }
   .vazio{ padding:34px 0; color:var(--suave); font-size:.8125rem }
+  .resultado-linha{ font-weight:800; letter-spacing:-.01em; white-space:nowrap }
+  .resultado-linha .prob{ font-weight:400; color:var(--suave); margin-left:8px }
+  .resultado-linha.sem-palpite{ font-weight:400; color:var(--suave) }
 
   /* ---------- bloco invertido ---------- */
   .invertido{
@@ -338,6 +341,9 @@
    */
   let chave = null;
 
+  /** documento -> texto da nacionalidade ja consultada, para a linha nao voltar ao botao. */
+  const nacionalidadesConsultadas = new Map();
+
   /** Toda chamada passa por aqui: um lugar so para tratar erro da API. */
   async function api(caminho, opcoes = {}) {
     const cabecalhos = { "Content-Type": "application/json" };
@@ -431,6 +437,39 @@
   $("btn-sair").addEventListener("click", encerrarSessao);
 
   // ---------- 02. listagem ----------
+  /** O resultado ocupa o lugar do botao e permanece ali. */
+  function montarResultado(resultado) {
+    const span = document.createElement("span");
+    span.className = "resultado-linha" + (resultado.pais ? "" : " sem-palpite");
+    span.textContent = resultado.pais || "sem palpite";
+    if (resultado.porcento !== null) {
+      const prob = document.createElement("span");
+      prob.className = "prob";
+      prob.textContent = resultado.porcento + "%";
+      span.append(prob);
+    }
+    return span;
+  }
+
+  function montarBotaoConsulta(documento) {
+    const botao = document.createElement("button");
+    botao.type = "button";
+    botao.className = "vazado mini";
+    botao.textContent = "Nacionalidade";
+    botao.addEventListener("click", async () => {
+      botao.disabled = true;
+      botao.textContent = "consultando...";
+      const resultado = await consultarNacionalidade(documento);
+      if (resultado) {
+        botao.replaceWith(montarResultado(resultado));
+      } else {
+        botao.disabled = false;
+        botao.textContent = "Nacionalidade";
+      }
+    });
+    return botao;
+  }
+
   async function carregarLista() {
     const aviso = $("aviso-lista");
     esconder(aviso);
@@ -527,6 +566,10 @@
   }
 
   // ---------- 03. nacionalidade ----------
+  /**
+   * Consulta e devolve o resultado para a linha da tabela. O painel grande
+   * aparece com destaque e se apaga sozinho; o resultado permanece na linha.
+   */
   async function consultarNacionalidade(documento) {
     const aviso = $("aviso-nacionalidade");
     const painel = $("painel-nacionalidade");
@@ -535,22 +578,34 @@
 
     try {
       const r = await api("/findNacionalityByPerson/" + encodeURIComponent(documento));
-      $("rotulo-pessoa").textContent = r.name;
+      const porcento = r.nationality === null ? null : Math.round(r.probability * 1000) / 10;
 
+      $("rotulo-pessoa").textContent = r.name;
       if (r.nationality === null) {
         $("nome-pais").textContent = "Sem palpite";
         $("barra-prob").style.width = "0%";
         $("legenda-prob").textContent = "O serviço externo não tem previsão para este nome.";
       } else {
-        const porcento = Math.round(r.probability * 1000) / 10;
         $("nome-pais").textContent = r.nationality;
         $("barra-prob").style.width = porcento + "%";
-        $("legenda-prob").textContent = `Probabilidade ${porcento}% — previsão estatística de api.nationalize.io`;
+        $("legenda-prob").textContent =
+          `Probabilidade ${porcento}% — previsão estatística de api.nationalize.io`;
       }
+
       painel.hidden = false;
       $("nacionalidade-vazia").hidden = true;
+      painel.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      // o painel e um destaque momentaneo; a linha guarda o resultado
+      clearTimeout(temporizadores.get(painel.id));
+      temporizadores.set(painel.id, setTimeout(() => { painel.hidden = true; }, 8000));
+
+      const resultado = { pais: r.nationality, porcento };
+      nacionalidadesConsultadas.set(documento, resultado);
+      return resultado;
     } catch (e) {
       mostrar(aviso, e.message, e.codigo);
+      return null;
     }
   }
 
