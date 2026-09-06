@@ -109,15 +109,14 @@ O enunciado diz "a critério de quem realiza a prova". Estas são as
 escolhas e o motivo de cada uma.
 
 Esta foi minha primeira vez escrevendo Java. Aprender uma linguagem nova nunca
-foi o obstáculo — a base em C++ transferiu quase tudo o que importa aqui, e a
-curva real ficou no ecossistema em volta, não na linguagem.
+foi o obstáculo, minha base em C++ ajudou demais nesse projeto.
 
-Ajudou especialmente ter feito o **WebServer** da 42, onde implementei o protocolo
+Também ajudou ter feito o **WebServer** da 42, onde implementei o protocolo
 HTTP na mão: parsear a requisição, montar a resposta, gerenciar as conexões.
 Resolver o mesmo problema com um framework, sabendo exatamente o que ele faz por
 baixo, foi a parte mais interessante deste projeto.
 
-### O framework é Spring Boot
+### Framework: Spring Boot
 
 Java era obrigatório; o framework, livre. Escolhi **Spring Boot 4.1.1**, padrão do
 mercado Java, e dele usei apenas o `starter-webmvc` — duas dependências de
@@ -126,7 +125,7 @@ produção no `pom.xml` inteiro.
 Ficaram de fora por decisão: **Spring Security**, **JPA**, **Lombok**, **Bean
 Validation** e **Docker**.
 
-### O `{Parametro}` é o documento (CPF)
+### `{Parametro}`: documento (CPF)
 
 CPF é a identidade natural de uma pessoa no Brasil. O RG foi descartado por ser
 estadual, não único e sem algoritmo de validação. Em contrapartida, documentos
@@ -136,34 +135,17 @@ isso se leia como regra, não como defeito.
 A validação é o módulo 11 sobre os dois dígitos, e rejeita à parte a armadilha de
 `00000000000` e afins.
 
-### A validação vive nos tipos.
+### Validação: vive nos tipos.
 
 Os value objects validam no construtor, então instância inválida não chega a
 existir.
 
-### O endpoint de nacionalidade devolve o nome do país
-
-A API externa responde com código ISO (`"BR"`) e o enunciado pede o *nome*:
-`java.util.Locale` converte com os dados que já vêm no JDK.
-
-**A consulta usa nome + sobrenome**, medido contra a API durante o
-desenvolvimento:
-
-| Consulta | Resultado |
-|---|---|
-| `Beatriz` | 🇪🇸 Espanha 19,8% — errado |
-| `Beatriz Dantas` | 🇧🇷 Brasil **66,6%** — certo |
-| `Beatriz Dantas da Silva` | 🇧🇷 Brasil 36,5% — menos confiante |
-
-Nome do meio dilui a previsão, então nome + sobrenome é o ponto ótimo — que é
-exatamente a estrutura de campos do enunciado.
-
-### O armazenamento é em memória
+### Armazenamento: em memória
 
 Permitido pelo enunciado, e faz o avaliador rodar com um comando sem instalar
 nada. Os dados não sobrevivem a um restart.
 
-### A autenticação cobre todas as APIs, por chave
+### Autenticação: cobre todas as APIs, por chave
 
 Das duas opções do enunciado — a API mais crítica ou todas — escolhi a segunda,
 com **chave de API**: as cinco exigem o cabeçalho `X-API-Key`. Fica de fora só a
