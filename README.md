@@ -31,8 +31,15 @@ Depois é só abrir **http://localhost:8080**.
 |---|---|
 | Rodar | `./mvnw -q spring-boot:run` |
 | Testar | `./mvnw -q test` |
+| Apagar o que o build gerou | `./mvnw -q clean` |
 | Gerar o jar | `./mvnw -q clean package` |
 | Rodar o jar sozinho | `java -jar target/*.jar` |
+
+O `clean` apaga a pasta `target/`, que guarda os `.class` e o jar e é recriada
+a cada build — nada dela vai para o repositório. Vale rodar quando o resultado
+parecer inconsistente com o código, por exemplo depois de renomear ou mover
+arquivos: o compilador é incremental e pode reaproveitar classes que já não
+correspondem ao fonte.
 
 O `-q` deixa o build silencioso: **nenhuma saída significa sucesso**. Falha
 continua aparecendo por inteiro — teste quebrado mostra a asserção, erro de
