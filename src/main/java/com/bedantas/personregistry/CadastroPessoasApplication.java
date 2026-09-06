@@ -20,7 +20,7 @@ public class CadastroPessoasApplication {
 
         System.out.printf("""
 
-                  cadastro.  ->  http://localhost:%s
+                  nacion.  ->  http://localhost:%s
 
                   chave de demonstracao: %s
                   encerrar: Ctrl+C

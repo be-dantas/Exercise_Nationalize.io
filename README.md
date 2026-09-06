@@ -19,7 +19,7 @@ o wrapper baixa a versão certa sozinho.
 Ao subir, imprime:
 
 ```
-  cadastro.  ->  http://localhost:8080
+  nacion.  ->  http://localhost:8080
 
   chave de demonstracao: chave-de-demonstracao-2026
   encerrar: Ctrl+C
